@@ -1,0 +1,6 @@
+# Documents
+*.pdf
+*.docx
+
+# OS
+.DS_Store
