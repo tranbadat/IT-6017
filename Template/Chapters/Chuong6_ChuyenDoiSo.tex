@@ -1,0 +1,23 @@
+% Chương 6 - Phụ trách: Vũ Đức Minh | Báo cáo ~2-3 trang
+\section{TÁC ĐỘNG ĐẾN CHUYỂN ĐỔI SỐ VÀ THÁCH THỨC}\label{chap:chuyen-doi-so}
+\canviet{Phụ trách: Vũ Đức Minh. Dung lượng dự kiến: 2--3 trang. Mở chương bằng 2--3 câu giới thiệu nội dung chương.}
+
+\subsection{An toàn hạ tầng DNS trong doanh nghiệp số}\label{sec:an-toan-dns}
+\canviet{DNS là hạ tầng nền tảng của các dịch vụ số; botnet đe doạ tính liên tục và dữ liệu của doanh nghiệp đang chuyển đổi số. Giải pháp nhẹ như FANCI phù hợp cả với doanh nghiệp vừa và nhỏ.}
+
+\subsection{Phát hiện DGA dưới dạng dịch vụ và tích hợp tình báo mối đe doạ}\label{sec:as-a-service}
+\canviet{Mô hình dịch vụ: chỉ cần gửi tên miền qua API, không lộ ngữ cảnh mạng. mAGD phát hiện được dùng làm IOC, tích hợp vào SIEM/SOC, tường lửa, router; chia sẻ dưới dạng nguồn tin tình báo mối đe doạ; sinkhole hoặc chặn tên miền C\&C.}
+
+\subsection{Thách thức}\label{sec:thach-thuc}
+
+\subsubsection{DGA né tránh phát hiện}
+\canviet{DGA dựa trên danh sách từ, DGA đối kháng sinh bởi học máy nhằm bắt chước tên miền hợp lệ.}
+
+\subsubsection{Quyền riêng tư dữ liệu DNS}
+\canviet{Dữ liệu DNS phản ánh hành vi người dùng; yêu cầu tuân thủ quy định bảo vệ dữ liệu cá nhân (có thể liên hệ quy định pháp luật Việt Nam hiện hành); DNS mã hoá (DoH/DoT) làm giảm khả năng quan sát tại resolver.}
+
+\subsubsection{Chi phí vận hành và duy trì mô hình}
+\canviet{Cập nhật dữ liệu huấn luyện khi xuất hiện DGA mới, xử lý dương tính giả, nhân lực phân tích tại SOC.}
+
+\subsection{Tiểu kết chương}
+\canviet{Tóm tắt tác động và thách thức, dẫn sang phần kết luận.}

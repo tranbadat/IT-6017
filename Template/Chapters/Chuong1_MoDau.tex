@@ -1,0 +1,18 @@
+% Chương 1 - Phụ trách: Trần Bá Đạt | Báo cáo ~2 trang
+\section{MỞ ĐẦU}\label{chap:mo-dau}
+\canviet{Phụ trách: Trần Bá Đạt. Dung lượng dự kiến: khoảng 2 trang.}
+
+\subsection{Bối cảnh: botnet và máy chủ điều khiển C\&C}\label{sec:boi-canh}
+\canviet{Khái niệm botnet và vai trò của máy chủ điều khiển (C\&C); hạn chế của việc dùng tên miền hoặc địa chỉ IP cố định (dễ bị chặn, bị đánh sập). Bổ sung số liệu hoặc một case study gần đây về botnet dùng DGA để phần mở đầu sinh động.}
+
+\subsection{Sự ra đời của thuật toán sinh tên miền}\label{sec:su-ra-doi-dga}
+\canviet{Cơ chế DGA: bot sinh hàng loạt tên miền (từ 1 đến 10.000 tên miền mỗi ngày tuỳ DGA), botmaster chỉ đăng ký một vài tên miền, phần lớn truy vấn còn lại nhận phản hồi NXDomain \cite{plohmann2016dga,schuppen2018fanci}. DGA giúp botnet chống lại việc bị đánh sập.}
+
+\subsection{Bài toán phát hiện DGA qua phản hồi NXDomain}\label{sec:bai-toan}
+\canviet{Vì sao giám sát NXD là hướng hiệu quả: lưu lượng nhỏ hơn nhiều so với toàn bộ DNS, phát hiện được bot trước khi bot liên lạc thành công với C\&C. Nêu hạn chế chung của các hướng tiếp cận trước: cần theo dõi nhóm truy vấn, dựa trên phân cụm và gán nhãn thủ công.}
+
+\subsection{Mục tiêu và phạm vi của báo cáo}\label{sec:muc-tieu}
+\canviet{Mục tiêu: tìm hiểu, phân tích hệ thống FANCI \cite{schuppen2018fanci}; so sánh với các phương pháp liên quan; đánh giá tác động tới chuyển đổi số. Phạm vi: báo cáo dạng khảo sát, có thể kèm thực nghiệm minh hoạ nhỏ (Mục~\ref{sec:thuc-nghiem-nhom}).}
+
+\subsection{Bố cục báo cáo}\label{sec:bo-cuc}
+\canviet{Tóm tắt nội dung từng chương, dẫn chiếu tới Chương~\ref{chap:co-so-ly-thuyet} đến Chương~\ref{chap:ket-luan}.}

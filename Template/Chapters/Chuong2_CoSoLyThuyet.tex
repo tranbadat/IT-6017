@@ -1,0 +1,65 @@
+% Chương 2 - Phụ trách: Trần Bá Đạt | Báo cáo ~6-7 trang
+\section[CƠ SỞ LÝ THUYẾT VÀ KHẢO SÁT CÁC CÔNG TRÌNH LIÊN QUAN]{CƠ SỞ LÝ THUYẾT VÀ KHẢO SÁT\\CÁC CÔNG TRÌNH LIÊN QUAN}\label{chap:co-so-ly-thuyet}
+\canviet{Phụ trách: Trần Bá Đạt. Dung lượng dự kiến: 6--7 trang. Mở chương bằng 2--3 câu giới thiệu nội dung chương.}
+
+\subsection{Cơ sở lý thuyết}\label{sec:co-so-ly-thuyet}
+
+\subsubsection{Hệ thống tên miền và phản hồi NXDomain}
+\canviet{Cấu trúc tên miền (subdomain, TLD, public suffix), quy trình phân giải DNS, mã phản hồi NXDOMAIN (RCODE 3). Phân biệt ``phản hồi NXD'' (cả gói tin) và ``NXD'' (chỉ tên miền) như cách dùng trong bài báo.}
+
+\subsubsection{Thuật toán sinh tên miền và các lược đồ sinh}
+\canviet{Phân loại DGA theo Plohmann và cộng sự \cite{plohmann2016dga}: dựa trên số học (arithmetic), băm (hash), danh sách từ (wordlist), hoán vị (permutation). Ví dụ: Kraken, Corebot, Torpig (ngẫu nhiên); Matsnu (ghép từ tiếng Anh); VolatileCedar (hoán vị); Dyre (dạng băm) --- có thể vẽ lại Hình 1 của bài báo.}
+
+\subsubsection{Phân loại tên miền không tồn tại: mAGD và bNXD}
+\canviet{mAGD do DGA sinh ra; bNXD gồm ba nhóm: lỗi gõ phím, cấu hình sai và lạm dụng DNS (hai nhóm sau gọi chung là bAGD). Ví dụ: Google Chrome sinh tên miền ngẫu nhiên để dò DNS hijacking, phần mềm diệt virus dùng DNS kiểm tra chữ ký (Hình 2 của bài báo).}
+
+\subsection{Khảo sát các công trình liên quan}\label{sec:khao-sat}
+\canviet{Với mỗi hệ thống trình bày: mục tiêu, dữ liệu đầu vào, đặc trưng, phương pháp, kết quả công bố và điểm khác biệt so với FANCI.}
+
+\subsubsection{Exposure}
+\canviet{\cite{bilge2014exposure}: phát hiện tên miền độc hại nói chung (phishing, phát tán mã độc), giám sát toàn bộ lưu lượng DNS, cần thông tin nhạy cảm (mẫu truy cập), đặc trưng trích xuất từ nhiều truy vấn; khó triển khai dạng dịch vụ.}
+
+\subsubsection{Winning with DNS Failures}
+\canviet{\cite{yadav2011winning}: kết hợp phản hồi DNS thành công và NXD để thu hẹp tập IP nghi là máy chủ C\&C; cần toàn bộ lưu lượng DNS và entropy của các truy vấn.}
+
+\subsubsection{Pleiades}
+\canviet{\cite{antonakakis2012throwaway}: phân cụm để phát hiện DGA mới, cây quyết định xen kẽ đa lớp để nhận diện DGA đã biết; đặc trưng lấy từ nhóm NXD của cùng một host. Nhóm 5 NXD: TPR 95--99\%, FPR 0,1--1,4\%; nhóm 10 NXD: TPR 99--100\%, FPR 0--0,2\%. Phát hiện 12 DGA mới sau 15 tháng tại một ISP.}
+
+\subsubsection{Phoenix}
+\canviet{\cite{schiavoni2014phoenix}: thiên về tình báo (theo dõi hạ tầng C\&C của botnet) hơn là phát hiện; TPR 81,4--94,8\% trên 1.153.516 tên miền của 3 DGA.}
+
+\subsubsection{Phát hiện dựa trên NetFlow}
+\canviet{\cite{grill2015netflow}: chỉ dùng dữ liệu NetFlow/IPFIX, hướng tới bảo vệ quyền riêng tư; giả định máy nhiễm gửi truy vấn DNS mà không kết nối tới IP mới; ACC 88,77--99,89\% với 6 DGA.}
+
+\subsubsection{DGArchive}
+\canviet{\cite{plohmann2016dga,dgarchive}: phân loại DGA, cơ sở dữ liệu mAGD dựng lại từ các DGA đã được dịch ngược; không tự động phát hiện nhưng cho phép lập danh sách đen. FANCI dùng DGArchive để làm sạch dữ liệu lành tính và làm nguồn dữ liệu độc hại.}
+
+\subsection{So sánh các phương pháp}\label{sec:so-sanh}
+\canviet{Điền Bảng~\ref{tab:so-sanh-phuong-phap} theo mục 5 của README và mục 6 của bài báo, sau đó viết 1--2 đoạn nhận xét.}
+
+\begin{table}[H]
+\centering
+\caption{So sánh FANCI với các phương pháp phát hiện liên quan}
+\label{tab:so-sanh-phuong-phap}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{2.4cm}|*{6}{>{\raggedright\arraybackslash}X|}}
+\hline
+\rowcolor{LightCyan}
+\textbf{\small Hệ thống} & \textbf{Đơn vị trích xuất đặc trưng} & \textbf{Cần theo dõi lưu lượng} & \textbf{Độ chính xác công bố} & \textbf{Tổng quát hoá} & \textbf{Hiệu năng} & \textbf{Triển khai dạng dịch vụ} \\
+\hline
+\small Exposure & \dots & \dots & \dots & \dots & \dots & \dots \\
+\hline
+\small Winning with DNS Failures & \dots & \dots & \dots & \dots & \dots & \dots \\
+\hline
+\small Pleiades & \dots & \dots & \dots & \dots & \dots & \dots \\
+\hline
+\small Phoenix & \dots & \dots & \dots & \dots & \dots & \dots \\
+\hline
+\small NetFlow & \dots & \dots & \dots & \dots & \dots & \dots \\
+\hline
+\small \textbf{FANCI} & \dots & \dots & \dots & \dots & \dots & \dots \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Tiểu kết chương}
+\canviet{Tóm tắt: các phương pháp trước đều cần theo dõi nhóm truy vấn, đây là khoảng trống mà FANCI giải quyết; dẫn sang Chương~\ref{chap:fanci}.}

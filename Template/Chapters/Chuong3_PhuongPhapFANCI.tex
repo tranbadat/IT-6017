@@ -1,0 +1,49 @@
+% Chương 3 - Phụ trách: Nguyễn Đồng Hoàng | Báo cáo ~6-7 trang
+\section{PHƯƠNG PHÁP FANCI}\label{chap:fanci}
+\canviet{Phụ trách: Nguyễn Đồng Hoàng. Dung lượng dự kiến: 6--7 trang. Mở chương bằng 2--3 câu giới thiệu nội dung chương.}
+
+\subsection{Tổng quan và ý tưởng cốt lõi}\label{sec:tong-quan-fanci}
+\canviet{FANCI \cite{schuppen2018fanci} phân loại từng NXD thành mAGD hoặc bNXD bằng học có giám sát. Điểm mới: đặc trưng chỉ trích xuất từ chính tên miền cần phân loại --- nhẹ, không phụ thuộc ngôn ngữ, không cần tính toán trước hay tri thức tiên nghiệm, không cần theo dõi lưu lượng.}
+
+\subsection{Kiến trúc hệ thống}\label{sec:kien-truc}
+\canviet{Vẽ lại Hình 3 của bài báo (có thể dùng TikZ, đã nạp sẵn trong main.tex): ba module huấn luyện, phân loại và tình báo cùng luồng dữ liệu giữa chúng.}
+
+\subsubsection{Module huấn luyện}
+\canviet{Đầu vào: mAGD từ DGArchive và bNXD từ DNS resolver của mạng. Làm sạch bNXD bằng cách đối chiếu với DGArchive, trích xuất đặc trưng, đầu ra là mô hình đã huấn luyện.}
+
+\subsubsection{Module phân loại}
+\canviet{Đầu vào: một NXD. Trích xuất đặc trưng rồi phân loại bằng RF hoặc SVM; đầu ra là nhãn lành tính hoặc độc hại. Có thể dùng độc lập hoặc kết hợp với module tình báo.}
+
+\subsubsection{Module tình báo}
+\canviet{Bổ sung IP nguồn, IP đích và thời điểm của phản hồi NXD để ánh xạ về thiết bị bị nhiễm; lưu kết quả vào cơ sở dữ liệu. Hậu xử lý gồm: lọc bằng danh sách trắng toàn cục (Alexa top X, loại trừ public suffix) và cục bộ; biến đổi (nhóm theo TLD/SLD, theo IP, theo thời gian) để hỗ trợ phân tích thủ công.}
+
+\subsubsection{Kịch bản triển khai}
+\canviet{Cục bộ: mạng doanh nghiệp, trường học có DNS tập trung, phát hiện thiết bị nhiễm, sinkhole. Thuê ngoài: huấn luyện ở mạng này rồi dùng ở mạng khác, cung cấp phân loại dưới dạng dịch vụ qua API, chia sẻ mAGD dưới dạng nguồn tin tình báo mối đe doạ.}
+
+\subsection{Bộ 21 đặc trưng phân loại}\label{sec:dac-trung}
+
+\subsubsection{Định nghĩa và ký hiệu}
+\canviet{Tên miền $d = s_n.\ldots.s_2.s_1$; TLD hợp lệ (danh sách IANA); public suffix (Public Suffix List của Mozilla \cite{publicsuffix}); chuỗi $d_{dsf}$ đã bỏ dấu chấm và public suffix. Quy ước ký hiệu * (bỏ dấu chấm) và $\dagger$ (bỏ public suffix).}
+
+\subsubsection{Nhóm đặc trưng cấu trúc}
+\canviet{12 đặc trưng \#1--\#12 (Bảng 1 của bài báo); giải thích kỹ \#7, \#9, \#10, \#12. Lập bảng tóm tắt kèm ví dụ $d_1$ = bnxd.rwth-aachen.de và $d_2$ = dekh1her76avy0qnelivijwd1.ddns.net.}
+
+\subsubsection{Nhóm đặc trưng ngôn ngữ}
+\canviet{7 đặc trưng \#13--\#19 (Bảng 2 của bài báo); giải thích kỹ \#17 (tỷ lệ ký tự lặp), \#18 (tỷ lệ phụ âm liên tiếp), \#19 (tỷ lệ chữ số liên tiếp).}
+
+\subsubsection{Nhóm đặc trưng thống kê}
+\canviet{\#20 phân bố tần suất n-gram với $n = 1, 2, 3$ (7 giá trị thống kê cho mỗi $n$, tổng 21 giá trị); \#21 entropy Shannon --- trình bày công thức.}
+
+\subsection{Thuật toán phân loại}\label{sec:thuat-toan}
+
+\subsubsection{Rừng ngẫu nhiên}
+\canviet{\cite{ho1995random,breiman2001random}: tập hợp nhiều cây quyết định, dự đoán bằng bỏ phiếu đa số; các tham số chính $T$ (số cây), $F$ (số đặc trưng xét tại mỗi nút), $i(N)$ (tiêu chí Gini hoặc entropy).}
+
+\subsubsection{Máy vector hỗ trợ}
+\canviet{\cite{cortes1995support}: tìm siêu phẳng phân tách hai lớp; kernel tuyến tính và RBF; các tham số $C$ và $\gamma$.}
+
+\subsubsection{Lựa chọn siêu tham số}
+\canviet{Tìm kiếm lưới (grid search) trên các tập dữ liệu độc lập. Tham số cuối cùng cho bài toán nhiều DGA: RF dùng Gini, $F = 18$, $T = 785$; SVM dùng kernel RBF, $C = 0{,}9160$, $\gamma = 0{,}0198$ (Phụ lục B của bài báo).}
+
+\subsection{Tiểu kết chương}
+\canviet{Tóm tắt kiến trúc và bộ đặc trưng, dẫn sang phần đánh giá thực nghiệm ở Chương~\ref{chap:thuc-nghiem}.}

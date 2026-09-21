@@ -1,0 +1,150 @@
+% This template is created by SV Bùi Vân Anh, và Thầy Nguyễn Tiến Hòa từ phòng Lab xử lý tín hiệu băng gốc hệ thống 5G. Chúng tôi rất vui nếu được nhắc đến trong lời cảm ơn.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Báo cáo bài tập lớn IT6017 - Đề tài FANCI. Biên dịch bằng pdfLaTeX (Overleaf).
+% Mỗi chương nằm trong một file riêng ở thư mục Chapters/, mỗi thành viên chỉ sửa file mình phụ trách.
+\documentclass{article} % Tạo một bản báo cáo
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc} % Để sử dụng Tiếng Việt
+\usepackage[fontsize=13pt]{scrextend} % Set fontsize=13pt
+%\usepackage[paperheight=29.7cm,paperwidth=21cm,right=2cm,left=3cm,top=2cm,bottom=2.5cm]{geometry}% Chuẩn A4, căn lề phải, trái, trên, dưới.
+\usepackage[paperheight=29.7cm,paperwidth=21cm,right=2cm,left=3cm,top=2cm,bottom=2.5cm,twoside]{geometry}% Chuẩn A4, căn lề phải, trái, trên, dưới.
+\usepackage{mathptmx} % Time New Roman
+\usepackage{longtable} % Time New Roman
+\usepackage{amsmath}
+\usepackage{graphicx} % Thư viện chèn ảnh
+\usepackage{float} % Set vị trí chèn ảnh
+\usepackage{tikz} % Thư viện tạo khung bìa
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.multipart,fit,calc}
+
+\usetikzlibrary{calc} % Thư viện tikz
+\usepackage{indentfirst} % Thư viện thụt đầu dòng
+\usepackage{booktabs} % To thicken table lines
+\renewcommand{\baselinestretch}{1.2} % Giãn dòng 1.2
+\setlength{\parskip}{6pt} % Spacing after
+\setlength{\parindent}{1cm} % Set khoảng cách thụt đầu dòng mỗi đoạn
+\usepackage{titlesec} % Thư viện để set up các kiểu chữ
+\setcounter{secnumdepth}{4} % 4 Heading
+\titlespacing*{\section}{0pt}{0pt}{30pt} % Heading 1 (Chương)
+\titleformat{\section}[display]{\fontsize{16pt}{20pt}\selectfont \bfseries \centering}{CHƯƠNG \thesection}{6pt}{}
+
+\titlespacing*{\subsection}{0pt}{10pt}{0pt} % Heading 2
+\titleformat*{\subsection}{\fontsize{14pt}{0pt}\selectfont \bfseries}
+
+\titlespacing*{\subsubsection}{0pt}{10pt}{0pt} % Heading 3
+\titleformat*{\subsubsection}{\fontsize{13pt}{0pt}\selectfont \bfseries \itshape}
+
+\titlespacing*{\paragraph}{0pt}{10pt}{0pt} % Heading 4
+\titleformat*{\paragraph}{\fontsize{13pt}{0pt}\selectfont \itshape}
+
+\renewcommand{\figurename}{\fontsize{12pt}{0pt}\selectfont \bfseries Hình}
+\renewcommand{\thefigure}{\thesection.\arabic{figure}}
+\usepackage[font=bf]{caption}
+\captionsetup[figure]{labelsep=space}
+
+\renewcommand{\tablename}{\fontsize{12pt}{0pt}\selectfont \bfseries Bảng}
+\renewcommand{\thetable}{\thesection.\arabic{table}}
+\captionsetup[table]{labelsep=space}
+
+\usepackage{xltabular}
+\usepackage{tabularx}
+\newcolumntype{s}{>{\hsize=.3\hsize}X}
+\newcolumntype{y}{>{\hsize=.4\hsize}X}
+\newcolumntype{d}{>{\hsize=.1\hsize}X}
+\newcolumntype{a}{>{\hsize=1.1\hsize}X}
+\newcolumntype{g}{>{\hsize=5\hsize}X}
+\renewcommand{\tabularxcolumn}[1]{>{\small}m{#1}}
+
+
+\renewcommand{\theequation}{\thesection.\arabic{equation}} % Thay đổi đánh số phương trình mặc định
+% Đánh số lại hình, bảng, công thức từ 1 ở mỗi chương
+\counterwithin{figure}{section}
+\counterwithin{table}{section}
+\counterwithin{equation}{section}
+\newtheorem{theorem}{Định lý}[section]
+\newtheorem{defn}[theorem]{Định nghĩa}
+\newtheorem{corollary}[theorem]{Hệ quả}
+\newtheorem{lemma}[theorem]{Bổ đề}
+
+\usepackage{lipsum} % Thư viện tạo chữ linh tinh.
+\renewcommand{\contentsname}{MỤC LỤC}
+\renewcommand{\listfigurename}{DANH MỤC HÌNH VẼ}
+\renewcommand{\listtablename}{DANH MỤC BẢNG BIỂU}
+\renewcommand{\refname}{TÀI LIỆU THAM KHẢO}
+
+\usepackage[unicode]{hyperref}
+\usepackage{colortbl}
+\definecolor{LightCyan}{rgb}{0.88,1,1}
+\usepackage{forloop}
+\newcounter{loopcntr}
+\newcommand{\rpt}[2][1]{\forloop{loopcntr}{0}{\value{loopcntr}<#1}{#2}}
+
+% Ghi chú định hướng nội dung cho từng đề mục (chữ đỏ, nghiêng).
+% Khi nộp bài: đổi \hienghichutrue thành \hienghichufalse để ẩn toàn bộ ghi chú.
+\newif\ifhienghichu
+\hienghichutrue
+\newcommand{\canviet}[1]{\ifhienghichu{\color{red!65!black}\small\itshape [Cần viết] #1\par}\fi}
+
+% Nới cột số thứ tự mục trong mục lục để số dạng 4.10 không đè lên tên mục
+\makeatletter
+\renewcommand*\l@subsection{\@dottedtocline{2}{1.5em}{2.8em}}
+\makeatother
+
+\begin{document}
+\pagenumbering{alph} % Trang bìa đánh số riêng để không trùng số trang với nội dung chính
+\input{Bia}
+\pagenumbering{roman} % Phần mở đầu đánh số La Mã
+\input{LoiNoiDau}
+
+ % Tạo mục lục tự động
+\addtocontents{toc}{\protect\thispagestyle{empty}}
+\tableofcontents
+\thispagestyle{empty}
+\cleardoublepage
+
+%Tạo danh mục hình vẽ.
+{\let\oldnumberline\numberline
+\renewcommand{\numberline}{Hình~\oldnumberline}
+\listoffigures}
+\phantomsection\addcontentsline{toc}{section}{\numberline {} DANH MỤC HÌNH VẼ}
+\newpage
+
+ %Tạo danh mục bảng biểu.
+{\let\oldnumberline\numberline
+\renewcommand{\numberline}{Bảng~\oldnumberline}
+\listoftables}
+\phantomsection\addcontentsline{toc}{section}{\numberline {} DANH MỤC BẢNG BIỂU}
+\newpage
+\input{DanhMucVietTat}
+\newpage
+\pagenumbering{arabic} % Đánh số thứ tự 1,2,3...
+
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+
+% ===================== NỘI DUNG CHÍNH =====================
+\input{Chapters/Chuong1_MoDau}             % Trần Bá Đạt
+\clearpage
+\input{Chapters/Chuong2_CoSoLyThuyet}      % Trần Bá Đạt
+\clearpage
+\input{Chapters/Chuong3_PhuongPhapFANCI}   % Nguyễn Đồng Hoàng
+\clearpage
+\input{Chapters/Chuong4_ThucNghiem}        % Phạm Tuấn Anh
+\clearpage
+\input{Chapters/Chuong5_DanhGia}           % Vũ Đức Minh
+\clearpage
+\input{Chapters/Chuong6_ChuyenDoiSo}       % Vũ Đức Minh
+\clearpage
+\input{Chapters/Chuong7_KetLuan}           % Vũ Đức Minh
+
+% ===================== TÀI LIỆU THAM KHẢO =====================
+\clearpage
+\phantomsection\addcontentsline{toc}{section}{\numberline {} TÀI LIỆU THAM KHẢO}
+\bibliographystyle{ieeetr}
+\bibliography{MyRef}
+
+% ===================== PHỤ LỤC =====================
+\clearpage
+\appendix
+\titleformat{\section}[display]{\fontsize{16pt}{20pt}\selectfont \bfseries \centering}{PHỤ LỤC \thesection}{6pt}{}
+\input{Chapters/PhuLuc}
+
+\end{document}

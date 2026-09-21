@@ -1,0 +1,56 @@
+% Chương 4 - Phụ trách: Phạm Tuấn Anh | Báo cáo ~5-6 trang
+\section{THỰC NGHIỆM VÀ KẾT QUẢ}\label{chap:thuc-nghiem}
+\canviet{Phụ trách: Phạm Tuấn Anh. Dung lượng dự kiến: 5--6 trang. Mở chương bằng 2--3 câu giới thiệu. Các số liệu dưới đây do nhóm tác giả bài báo công bố \cite{schuppen2018fanci}, cần ghi rõ nguồn khi trích bảng.}
+
+\subsection{Dữ liệu thực nghiệm}\label{sec:du-lieu}
+\canviet{Nên tóm tắt ba nguồn dữ liệu trong một bảng (nguồn, thời gian thu thập, số lượng, vai trò).}
+
+\subsubsection{Dữ liệu lành tính từ mạng RWTH Aachen}
+\canviet{Ghi liên tục 31 ngày (22/5--21/6/2017) tại DNS resolver trung tâm; khoảng 700 triệu phản hồi NXD, 35,8 triệu NXD duy nhất.}
+
+\subsubsection{Dữ liệu lành tính từ mạng Siemens}
+\canviet{61 ngày (tháng 9--10/2017), từ các DNS server ở châu Âu, châu Á và Mỹ; 31,2 triệu NXD duy nhất.}
+
+\subsubsection{Dữ liệu độc hại từ DGArchive}
+\canviet{72 DGA, giữ lại 59 DGA có từ 250 mAGD duy nhất trở lên; tổng 49.738.973 mAGD duy nhất.}
+
+\subsection{Thiết lập thực nghiệm và độ đo đánh giá}\label{sec:thiet-lap}
+\canviet{Tập dữ liệu cân bằng giữa bNXD và mAGD; kiểm định chéo 5-fold và LOGO. Độ đo ACC, TPR, TNR, FNR, FPR, báo cáo trung bình, độ lệch chuẩn, min, trung vị, max.}
+
+\subsection{Độ chính xác phân loại}\label{sec:do-chinh-xac}
+
+\subsubsection{Phát hiện từng DGA riêng lẻ}
+\canviet{RF đạt ACC trung bình 0,99936; 6/59 DGA đạt 100\%; ngoại lệ duy nhất là Bobax (ACC 0,986).}
+
+\subsubsection{Phát hiện DGA với seed chưa biết}
+\canviet{LOGO theo seed (30 DGA, 550 seed): RF đạt ACC 0,95319, SVM đạt 0,98315 --- trường hợp duy nhất SVM tốt hơn RF.}
+
+\subsubsection{Phát hiện hỗn hợp nhiều DGA}
+\canviet{20 tập, mỗi tập 92.102 mẫu, chứa mAGD của cả 59 DGA: RF đạt ACC 0,99759.}
+
+\subsubsection{Phát hiện DGA chưa biết}
+\canviet{LOGO theo DGA: RF đạt ACC 0,98073; phát hiện được 55/59 DGA không có trong tập huấn luyện.}
+
+\subsubsection{Lựa chọn bộ phân loại}
+\canviet{Một RF duy nhất huấn luyện trên tất cả DGA đã biết tốt hơn mọi tổ hợp bộ phân loại đã thử (and/or, bỏ phiếu ngưỡng, bỏ phiếu đa số, kết hợp RF và SVM).}
+
+\subsection{Khả năng tổng quát hoá giữa các mạng}\label{sec:tong-quat-hoa}
+\canviet{Huấn luyện và dự đoán trên Siemens: ACC 0,99699; huấn luyện RWTH, dự đoán Siemens: 0,99534; huấn luyện Siemens, dự đoán RWTH: 0,99785.}
+
+\subsection{Giảm dương tính giả bằng danh sách trắng}\label{sec:giam-fp}
+\canviet{Lọc bằng Alexa top $10^2$, $10^4$, $10^6$ kết hợp danh sách trắng cục bộ: FP của RWTH giảm 75,53--89,88\%, của Siemens giảm 47,85--77,74\% (Bảng 11 của bài báo).}
+
+\subsection{Thử nghiệm thực tế tại mạng RWTH Aachen}\label{sec:thuc-te}
+\canviet{Dữ liệu 13/10--12/11/2017; 22.755 NXD dương tính duy nhất; 405 mAGD chưa biết thuộc 10 nhóm (DGA mới hoặc seed mới), trong đó ít nhất 4 DGA hoàn toàn mới; FPR trong trường hợp xấu nhất khoảng 0,00064.}
+
+\subsection{Tốc độ huấn luyện và phân loại}\label{sec:toc-do}
+\canviet{Huấn luyện RF trên 92.102 mẫu mất 339,71 giây (5,66 phút); phân loại 0,0025 giây mỗi mẫu (gồm cả trích xuất đặc trưng), tức khoảng 400 mẫu/giây trên một luồng. So sánh với mạng RWTH: trung bình 164, đỉnh 900 phản hồi NXD/giây.}
+
+\subsection{Phát hiện trên tên miền phân giải thành công}\label{sec:phan-giai-thanh-cong}
+\canviet{Thử nghiệm sơ bộ trên tên miền phân giải thành công của Siemens: RF đạt ACC 0,94962, SVM đạt 0,93683 --- mở ra hướng xác định máy chủ C\&C.}
+
+\subsection{Thực nghiệm minh hoạ của nhóm (tuỳ chọn)}\label{sec:thuc-nghiem-nhom}
+\canviet{Người thực hiện: Phạm Tuấn Anh, Nguyễn Đồng Hoàng. Script Python trích xuất một số đặc trưng đơn giản (độ dài, tỷ lệ nguyên âm, entropy Shannon, tỷ lệ ký tự lặp) trên tập tên miền hợp lệ và mAGD mô phỏng; vẽ biểu đồ phân bố để minh hoạ khả năng phân biệt. Mã nguồn đặt ở Phụ lục~\ref{app:ma-nguon}.}
+
+\subsection{Tiểu kết chương}
+\canviet{Tóm tắt các kết quả chính, dẫn sang phần đánh giá tổng hợp ở Chương~\ref{chap:danh-gia}.}

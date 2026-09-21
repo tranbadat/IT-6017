@@ -1,5 +1,5 @@
-# KẾ HOẠCH BÀI TẬP LỚN — Môn "Các xu hướng công nghệ chuyển đổi số"
-## Đề tài: FANCI — Feature-based Automated NXDomain Classification and Intelligence (phát hiện botnet dùng DGA qua phân tích tên miền NXDomain)
+# KẾ HOẠCH BÀI TẬP LỚN — Môn "Các xu hướng công nghệ trong chuyển đổi số"
+## Đề tài: Topic 1 — DGA. FANCI: Feature-based Automated NXDomain Classification and Intelligence (phát hiện botnet dùng DGA qua phân tích tên miền NXDomain)
 
 **Nhóm:** Trần Bá Đạt · Vũ Đức Minh · Phạm Tuấn Anh · Nguyễn Đồng Hoàng
 **Thời hạn:** 4 tuần | **Deliverables:** Báo cáo 15–30 trang, Slide 15–30 trang, Thuyết trình 15–20 phút (tất cả thành viên tham gia)
@@ -37,10 +37,10 @@
 
 | Thành viên | Phụ trách nội dung | Trang báo cáo | Slide | Thuyết trình |
 |---|---|---|---|---|
-| **Trần Bá Đạt** | Ch.1 Mở đầu + Ch.6 Tác động CĐS & Thách thức + tổng hợp/biên tập chung | ~5 trang | ~6 slide | ~4–5p |
-| **Vũ Đức Minh** | Ch.2 Khảo sát công trình liên quan (Exposure, Pleiades, Phoenix, NetFlow, DGArchive) + bảng so sánh | ~7 trang | ~7 slide | ~4–5p |
-| **Phạm Tuấn Anh** | Ch.3 Phương pháp FANCI (kiến trúc, 21 đặc trưng, RF/SVM) | ~7 trang | ~7 slide | ~4–5p |
-| **Nguyễn Đồng Hoàng** | Ch.4 Thực nghiệm & Kết quả + Ch.5 Đánh giá tổng hợp (RF vs SVM, ưu/nhược điểm) | ~6 trang | ~6 slide | ~4–5p |
+| **Trần Bá Đạt** | Ch.1 Mở đầu (bối cảnh botnet, C2 server, vì sao DGA ra đời, mục tiêu bài báo) + Ch.2 Cơ sở lý thuyết & Khảo sát công trình liên quan (DGA, phân loại NXD mAGD/bNXD, Exposure, Pleiades, Phoenix, NetFlow, DGArchive, bảng so sánh) + tổng hợp/biên tập chung | ~8–9 trang | ~8 slide | ~4–5p |
+| **Nguyễn Đồng Hoàng** | Ch.3 Phương pháp FANCI (kiến trúc 3 module Training/Classification/Intelligence, 21 đặc trưng structural/linguistic/statistical, RF & SVM) | ~6–7 trang | ~7 slide | ~4–5p |
+| **Phạm Tuấn Anh** | Ch.4 Thực nghiệm & Kết quả (dữ liệu RWTH/Siemens/DGArchive, độ chính xác, tổng quát hoá, tốc độ, thử nghiệm thực tế — 10 DGA mới) | ~5–6 trang | ~6 slide | ~4–5p |
+| **Vũ Đức Minh** | Ch.5 Đánh giá tổng hợp (RF vs SVM, ưu/nhược điểm) + Ch.6 Tác động CĐS & Thách thức + Ch.7 Kết luận | ~5–7 trang | ~6 slide | ~4–5p |
 
 - Kết luận + Q&A: cả nhóm cùng đứng, người dẫn (Đạt) tổng kết 1 slide.
 - Đóng góp được ghi rõ ở trang cuối báo cáo dưới dạng bảng (nội dung viết, số trang, vai trò trong thực nghiệm nếu có) để đảm bảo công bằng và minh bạch với giảng viên.
@@ -51,7 +51,7 @@
 
 ### Tuần 1 — Đọc hiểu & lên khung
 - Cả nhóm đọc toàn bộ bài báo FANCI 1 lượt, họp thống nhất cách hiểu chung (2h).
-- Mỗi người đọc sâu phần mình phụ trách + tìm thêm 1–2 tài liệu gốc liên quan (Minh: đọc thêm paper Exposure/Pleiades/Phoenix nếu có bản gốc; Tuấn Anh: đọc kỹ Random Forest/SVM cơ bản; Hoàng: nghiên cứu cách trình bày bảng số liệu ACC/TPR/FPR; Đạt: tìm số liệu/case study về DGA-botnet gần đây để mở đầu sinh động).
+- Mỗi người đọc sâu phần mình phụ trách + tìm thêm 1–2 tài liệu gốc liên quan (Đạt: tìm số liệu/case study về DGA-botnet gần đây để mở đầu sinh động + đọc thêm paper Exposure/Pleiades/Phoenix nếu có bản gốc; Hoàng: đọc kỹ Random Forest/SVM cơ bản; Tuấn Anh: nghiên cứu cách trình bày bảng số liệu ACC/TPR/FPR; Minh: tìm tài liệu về an toàn DNS trong doanh nghiệp và bối cảnh chuyển đổi số cho Ch.6).
 - Chốt outline chi tiết từng chương (heading cấp 2), chốt template slide.
 - **Deliverable cuối tuần:** Outline báo cáo + slide khung được cả nhóm duyệt.
 
