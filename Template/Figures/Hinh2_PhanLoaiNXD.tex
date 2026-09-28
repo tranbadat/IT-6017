@@ -1,0 +1,21 @@
+% Hình: phân loại tên miền không tồn tại theo nguồn gốc (Chương 2)
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >={Stealth[length=2mm]},
+  level distance=1.7cm,
+  level 1/.style={sibling distance=7cm},
+  level 2/.style={sibling distance=4cm},
+  level 3/.style={sibling distance=3.4cm},
+  every node/.style={draw, rounded corners=2pt, align=center, inner sep=5pt},
+  edge from parent/.style={draw, ->}]
+  \node[fill=gray!15] {Tên miền không tồn tại (NXD)}
+    child {node[fill=red!12] {mAGD\\(do DGA của mã độc sinh ra)}}
+    child {node[fill=green!12] {bNXD\\(nguồn gốc lành tính)}
+      child {node {Lỗi gõ phím\\(do người dùng)}}
+      child {node[fill=green!6] {bAGD\\(sinh tự động, lành tính)}
+        child {node {Cấu hình sai}}
+        child {node {Lạm dụng DNS}}}};
+\end{tikzpicture}
+\caption{Phân loại tên miền không tồn tại theo nguồn gốc (dựa trên \cite{schuppen2018fanci})}
+\label{fig:phan-loai-nxd}
+\end{figure}

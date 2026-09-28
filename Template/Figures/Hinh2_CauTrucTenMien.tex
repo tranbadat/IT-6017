@@ -1,0 +1,27 @@
+% Hình: cấu trúc một tên miền (Chương 2)
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small,
+  nhan/.style={font=\ttfamily\Large, inner sep=1pt, anchor=base west},
+  ngoac/.style={decorate, decoration={brace, amplitude=5pt}, thick},
+  ngoacduoi/.style={decorate, decoration={brace, mirror, amplitude=5pt}, thick}]
+  \node[nhan] (a) at (0,0) {mail.cs.};
+  \node[nhan] (b) at (a.base east) {example.};
+  \node[nhan] (c) at (b.base east) {co.};
+  \node[nhan] (e) at (c.base east) {uk};
+  % Phía trên: TLD, public suffix, tên miền được đăng ký
+  \draw[ngoac] ($(e.north west)+(0,0.1)$) -- ($(e.north east)+(0,0.1)$)
+    node[midway, above=5pt] {TLD};
+  \draw[ngoac] ($(c.north west)+(0,0.8)$) -- ($(e.north east)+(0,0.8)$)
+    node[midway, above=5pt] {Public suffix};
+  \draw[ngoac] ($(b.north west)+(0,1.5)$) -- ($(e.north east)+(0,1.5)$)
+    node[midway, above=5pt] {Tên miền được đăng ký};
+  % Phía dưới: tên miền con, nhãn đăng ký
+  \draw[ngoacduoi] ($(a.south west)+(0,-0.1)$) -- ($(a.south east)+(0,-0.1)$)
+    node[midway, below=6pt, anchor=north east, xshift=0.6cm, align=center] {Tên miền con\\(chủ sở hữu tự quản lý)};
+  \draw[ngoacduoi] ($(b.south west)+(0,-0.1)$) -- ($(b.south east)+(0,-0.1)$)
+    node[midway, below=6pt, anchor=north west, xshift=-0.6cm, align=center] {Nhãn được đăng ký\\(phần DGA sinh ra)};
+\end{tikzpicture}
+\caption{Cấu trúc tên miền \texttt{mail.cs.example.co.uk}: TLD là \texttt{uk}, public suffix là \texttt{co.uk}; kẻ tấn công chỉ tự do chọn các nhãn đứng trước public suffix}
+\label{fig:cau-truc-ten-mien}
+\end{figure}
