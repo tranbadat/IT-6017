@@ -1,18 +1,44 @@
-% Chương 1 - Phụ trách: Trần Bá Đạt | Báo cáo ~2 trang
+% Chương 1 - Phụ trách: Trần Bá Đạt | Báo cáo ~2-3 trang
 \section{MỞ ĐẦU}\label{chap:mo-dau}
-\canviet{Phụ trách: Trần Bá Đạt. Dung lượng dự kiến: khoảng 2 trang.}
+
+Chương này trình bày bối cảnh của bài toán phát hiện mã độc sử dụng thuật toán sinh tên miền (DGA), lý do việc giám sát các phản hồi NXDomain trở thành một hướng tiếp cận hiệu quả, mục tiêu và đóng góp của bài báo FANCI, cùng mục tiêu, phạm vi và bố cục của báo cáo.
 
 \subsection{Bối cảnh: botnet và máy chủ điều khiển C\&C}\label{sec:boi-canh}
-\canviet{Khái niệm botnet và vai trò của máy chủ điều khiển (C\&C); hạn chế của việc dùng tên miền hoặc địa chỉ IP cố định (dễ bị chặn, bị đánh sập). Bổ sung số liệu hoặc một case study gần đây về botnet dùng DGA để phần mở đầu sinh động.}
+
+Botnet là mạng lưới gồm nhiều thiết bị bị nhiễm mã độc, gọi là bot, chịu sự điều khiển từ xa của kẻ tấn công (botmaster). Botnet được dùng cho nhiều hoạt động tội phạm mạng như tấn công từ chối dịch vụ phân tán (DDoS), phát tán thư rác, đánh cắp thông tin tài khoản ngân hàng hay phân phối mã độc tống tiền. Quy mô của botnet có thể rất lớn: botnet Necurs, bị Microsoft cùng các đối tác tại 35 quốc gia triệt phá vào tháng 3/2020, đã lây nhiễm hơn chín triệu máy tính trên toàn thế giới \cite{microsoft2020necurs}.
+
+Để nhận lệnh và gửi về dữ liệu đánh cắp được, mỗi bot phải liên lạc với máy chủ điều khiển và ra lệnh (Command and Control -- C\&C). Kênh liên lạc này là điểm yếu của botnet. Nếu địa chỉ IP hoặc tên miền của máy chủ C\&C được ghi cố định trong mã độc, người phòng thủ chỉ cần dịch ngược một mẫu mã độc để lấy địa chỉ đó, rồi đưa vào danh sách đen, yêu cầu nhà đăng ký thu hồi tên miền hoặc chuyển hướng tên miền về máy chủ do mình kiểm soát (sinkhole). Khi đó toàn bộ bot mất liên lạc với botmaster và botnet bị vô hiệu hoá.
 
 \subsection{Sự ra đời của thuật toán sinh tên miền}\label{sec:su-ra-doi-dga}
-\canviet{Cơ chế DGA: bot sinh hàng loạt tên miền (từ 1 đến 10.000 tên miền mỗi ngày tuỳ DGA), botmaster chỉ đăng ký một vài tên miền, phần lớn truy vấn còn lại nhận phản hồi NXDomain \cite{plohmann2016dga,schuppen2018fanci}. DGA giúp botnet chống lại việc bị đánh sập.}
+
+Để khắc phục điểm yếu trên, các botnet hiện đại sử dụng thuật toán sinh tên miền (Domain Generation Algorithm -- DGA) thay cho tên miền hoặc địa chỉ IP cố định \cite{plohmann2016dga,schuppen2018fanci}. Bot và botmaster dùng chung một thuật toán và một giá trị khởi tạo (seed), thường gắn với ngày hiện tại, để cùng sinh ra một danh sách tên miền ứng viên làm điểm hẹn. Botmaster chỉ cần đăng ký trước một vài tên miền trong danh sách và trỏ chúng về máy chủ C\&C. Bot lần lượt truy vấn DNS cho các tên miền ứng viên cho đến khi gặp một tên miền phân giải được, rồi kết nối tới máy chủ C\&C qua địa chỉ IP nhận được. Các truy vấn còn lại đều nhận phản hồi NXDomain, tức tên miền không tồn tại. Hình~\ref{fig:botnet-dga} minh hoạ cơ chế này.
+
+\input{Figures/Hinh1_BotnetDGA}
+
+Tuỳ từng DGA, số tên miền được sinh ra mỗi ngày dao động từ 1 đến 10.000 \cite{schuppen2018fanci}. Vì danh sách thay đổi hằng ngày và chỉ botmaster biết tên miền nào sẽ được đăng ký, người phòng thủ phải chặn hoặc đăng ký trước toàn bộ tên miền ứng viên, trong khi kẻ tấn công chỉ cần đăng ký một tên miền. Sự bất đối xứng này thể hiện rõ qua sâu máy tính Conficker: biến thể Conficker.C xuất hiện năm 2009 chọn điểm hẹn từ hơn 50.000 tên miền được sinh ngẫu nhiên mỗi ngày, trải trên 110 TLD, buộc cộng đồng an ninh mạng và các cơ quan quản lý tên miền ở nhiều quốc gia phải phối hợp để ngăn chặn \cite{piscitello2010conficker}.
+
+DGA cũng có điểm yếu: nếu thuật toán bị dịch ngược, người phòng thủ có thể dự đoán trước các tên miền sẽ được dùng. Năm 2009, nhóm nghiên cứu của Stone-Gross và cộng sự đã dịch ngược DGA của botnet Torpig, đăng ký trước các tên miền mà botmaster chưa kịp đăng ký và kiểm soát botnet này trong mười ngày, qua đó quan sát hơn 180.000 máy bị nhiễm \cite{stonegross2009torpig}. Năm 2020, Microsoft phân tích DGA của Necurs và dự đoán chính xác hơn sáu triệu tên miền sẽ được sinh ra trong 25 tháng tiếp theo để các cơ quan quản lý tên miền chặn trước \cite{microsoft2020necurs}. Tuy nhiên, cách phòng thủ này đòi hỏi phải thu được mẫu mã độc và dịch ngược thủ công từng DGA, trong khi số DGA liên tục tăng: tại thời điểm bài báo FANCI được công bố, cơ sở dữ liệu DGArchive đã ghi nhận hơn 72 DGA khác nhau \cite{schuppen2018fanci,dgarchive}.
 
 \subsection{Bài toán phát hiện DGA qua phản hồi NXDomain}\label{sec:bai-toan}
-\canviet{Vì sao giám sát NXD là hướng hiệu quả: lưu lượng nhỏ hơn nhiều so với toàn bộ DNS, phát hiện được bot trước khi bot liên lạc thành công với C\&C. Nêu hạn chế chung của các hướng tiếp cận trước: cần theo dõi nhóm truy vấn, dựa trên phân cụm và gán nhãn thủ công.}
 
-\subsection{Mục tiêu và phạm vi của báo cáo}\label{sec:muc-tieu}
-\canviet{Mục tiêu: tìm hiểu, phân tích hệ thống FANCI \cite{schuppen2018fanci}; so sánh với các phương pháp liên quan; đánh giá tác động tới chuyển đổi số. Phạm vi: báo cáo dạng khảo sát, có thể kèm thực nghiệm minh hoạ nhỏ (Mục~\ref{sec:thuc-nghiem-nhom}).}
+Đặc điểm cố hữu của DGA là một bot bị nhiễm sinh ra rất nhiều truy vấn DNS cho các tên miền chưa được đăng ký. Vì vậy, thay vì cố gắng biết trước tên miền, có thể phát hiện máy bị nhiễm bằng cách quan sát các phản hồi NXDomain (NXD) trong mạng. Hướng tiếp cận này có ba ưu điểm. Thứ nhất, lượng phản hồi NXD nhỏ hơn nhiều so với toàn bộ lưu lượng DNS nên chi phí xử lý thấp. Thứ hai, bot thường phải thử nhiều tên miền không tồn tại trước khi gặp tên miền đã đăng ký, nên máy bị nhiễm có thể bị phát hiện trước khi liên lạc thành công với máy chủ C\&C. Thứ ba, phương pháp không cần mẫu mã độc hay dịch ngược thuật toán, do đó có khả năng phát hiện cả những DGA chưa từng được biết đến.
 
-\subsection{Bố cục báo cáo}\label{sec:bo-cuc}
-\canviet{Tóm tắt nội dung từng chương, dẫn chiếu tới Chương~\ref{chap:co-so-ly-thuyet} đến Chương~\ref{chap:ket-luan}.}
+Khó khăn chính là không phải phản hồi NXD nào cũng do mã độc gây ra. Trong mạng thực tế, phần lớn NXD có nguồn gốc lành tính như lỗi gõ tên miền, lỗi cấu hình hoặc phần mềm hợp pháp cố ý truy vấn tên miền ngẫu nhiên (Mục~\ref{sec:phan-loai-nxd}). Bài toán đặt ra là phân loại chính xác NXD thành tên miền độc hại do DGA sinh ra (mAGD) và tên miền không tồn tại lành tính (bNXD), với tỷ lệ báo động nhầm đủ thấp để vận hành được trong mạng lớn.
+
+Các nghiên cứu trước FANCI (Mục~\ref{sec:khao-sat}) đã đạt độ chính xác đáng kể, nhưng đều phải tương quan thông tin từ nhiều truy vấn hoặc phản hồi DNS, tức là phải theo dõi (tracking) lưu lượng theo từng máy hoặc theo thời gian. Nhiều phương pháp dựa trên phân cụm và cần chuyên gia gán nhãn thủ công cho từng cụm, đồng thời hầu như không công bố chi phí thời gian và bộ nhớ của quá trình phát hiện \cite{schuppen2018fanci}.
+
+\subsection{Mục tiêu và đóng góp của bài báo FANCI}\label{sec:muc-tieu-bai-bao}
+
+Bài báo ``FANCI: Feature-based Automated NXDomain Classification and Intelligence'' của Schüppen, Teubert, Herrmann và Meyer (Đại học RWTH Aachen và Siemens CERT), công bố tại hội nghị USENIX Security Symposium lần thứ 27 năm 2018 \cite{schuppen2018fanci}, đề xuất một hệ thống phát hiện máy nhiễm mã độc dùng DGA bằng cách giám sát phản hồi NXD. Mục tiêu của bài báo là phân loại từng NXD một cách độc lập, chỉ dựa vào chính chuỗi tên miền, không cần theo dõi lưu lượng hay bất kỳ thông tin ngữ cảnh nào khác. Các đóng góp chính gồm:
+\begin{itemize}
+    \item Một bộ 21 đặc trưng nhẹ, không phụ thuộc ngôn ngữ tự nhiên, trích xuất được từ một tên miền đơn lẻ, kết hợp với bộ phân loại học có giám sát Random Forest (RF) hoặc Support Vector Machine (SVM).
+    \item Đánh giá quy mô lớn trên dữ liệu của 59 DGA từ DGArchive cùng dữ liệu NXD thực từ mạng của Đại học RWTH Aachen và mạng nội bộ của Siemens AG. Hệ thống đạt độ chính xác trên 99\% với tỷ lệ dương tính giả thấp, và mô hình huấn luyện ở mạng này vẫn hoạt động tốt ở mạng khác.
+    \item Thử nghiệm thực tế trong một tháng tại mạng RWTH Aachen, phát hiện mười nhóm mAGD chưa có trong DGArchive, trong đó ít nhất bốn nhóm thuộc các DGA hoàn toàn mới.
+    \item Hiệu năng cao: huấn luyện trong 5,66 phút trên 92.102 mẫu và phân loại mỗi mẫu trong 0,0025 giây, đủ để phát hiện trực tiếp trong mạng lớn mà không cần lấy mẫu. Thiết kế mô-đun cho phép cung cấp chức năng phân loại dưới dạng dịch vụ.
+\end{itemize}
+
+\subsection{Mục tiêu, phạm vi và bố cục của báo cáo}\label{sec:muc-tieu}
+
+Báo cáo này nhằm tìm hiểu và phân tích hệ thống FANCI, đặt hệ thống trong bối cảnh các nghiên cứu liên quan, đánh giá ưu nhược điểm và thảo luận ý nghĩa của hướng tiếp cận này đối với chuyển đổi số. Báo cáo mang tính khảo sát và tổng hợp; các số liệu thực nghiệm được trích từ bài báo gốc, kèm theo một thực nghiệm minh hoạ nhỏ của nhóm (Mục~\ref{sec:thuc-nghiem-nhom}).
+
+Phần còn lại của báo cáo được tổ chức như sau. Chương~\ref{chap:co-so-ly-thuyet} trình bày kiến thức nền về DNS, DGA và các loại tên miền không tồn tại, đồng thời khảo sát và so sánh các công trình liên quan. Chương~\ref{chap:fanci} mô tả kiến trúc, bộ 21 đặc trưng và thuật toán phân loại của FANCI. Chương~\ref{chap:thuc-nghiem} trình bày dữ liệu và kết quả thực nghiệm. Chương~\ref{chap:danh-gia} đánh giá tổng hợp ưu, nhược điểm của FANCI so với các phương pháp khác. Chương~\ref{chap:chuyen-doi-so} thảo luận tác động của hướng tiếp cận này đối với chuyển đổi số cùng các thách thức. Chương~\ref{chap:ket-luan} kết luận báo cáo.

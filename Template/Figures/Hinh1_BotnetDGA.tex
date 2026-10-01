@@ -1,0 +1,38 @@
+% Hình: cơ chế liên lạc bot - C&C khi dùng DGA (Chương 1)
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >={Stealth[length=2.2mm]},
+  khoi/.style={draw, rounded corners=2pt, align=center, inner sep=5pt, minimum height=1cm},
+  tenmien/.style={font=\ttfamily\footnotesize, anchor=west, inner sep=2pt},
+  ketqua/.style={font=\footnotesize\bfseries, anchor=west, inner sep=2pt}]
+  % Thuật toán dùng chung
+  \node[khoi, fill=blue!8] (seed) at (6.1,5.0) {Thuật toán DGA + seed dùng chung (ví dụ: ngày hiện tại)};
+  % Các bên tham gia
+  \node[khoi, fill=red!12] (bot) at (0.8,1.6) {Máy bị\\nhiễm (bot)};
+  \node[khoi, fill=gray!20] (master) at (12.5,3.1) {Botmaster};
+  \node[khoi, fill=green!15] (cc) at (12.5,0.4) {Máy chủ C\&C\\203.0.113.10};
+  % Danh sách tên miền ứng viên và kết quả phân giải
+  \node[tenmien] (d1) at (2.9,3.0) {bknllsnbfzqr.net};
+  \node[tenmien] (d2) at (2.9,2.4) {cdzogoexis.tv};
+  \node[tenmien] (d3) at (2.9,1.8) {qwxzmrtbkla.org};
+  \node[tenmien] (d4) at (2.9,1.2) {\ldots};
+  \node[tenmien] (d5) at (2.9,0.6) {hdozpcy.com};
+  \node[ketqua, text=red!70!black] (r1) at (6.9,3.0) {NXDOMAIN};
+  \node[ketqua, text=red!70!black] (r2) at (6.9,2.4) {NXDOMAIN};
+  \node[ketqua, text=red!70!black] (r3) at (6.9,1.8) {NXDOMAIN};
+  \node[ketqua] (r4) at (6.9,1.2) {\ldots};
+  \node[ketqua, text=green!40!black] (r5) at (6.9,0.6) {203.0.113.10};
+  \foreach \i in {1,2,3,5} {\draw[->, gray] (6.0,0 |- d\i.east) -- (r\i.west);}
+  \node[draw, dashed, rounded corners=2pt, fit=(d1)(d5)(r1)(r5), inner sep=6pt,
+        label={[font=\footnotesize]above:Danh sách tên miền ứng viên trong ngày và kết quả truy vấn DNS}] (ds) {};
+  % Luồng hoạt động
+  \draw[->, dashed] (seed.west) -| (bot.north);
+  \draw[->, dashed] (seed.east) -| (master.north);
+  \draw[->, thick] (bot.east) -- node[above, font=\footnotesize] {(1)} (ds.west |- bot.east);
+  \draw[->, thick] (master.south) -- node[right, align=left, font=\footnotesize] {(0) đăng ký trước\\hdozpcy.com} (cc.north);
+  \draw[->, thick, green!40!black] (r5.east) -- node[above, font=\footnotesize, pos=0.55] {(2)} (cc.west |- r5.east);
+  \draw[->, thick] (bot.south) |- node[below, pos=0.72, font=\footnotesize] {(3) kết nối tới máy chủ C\&C để nhận lệnh} ($(cc.south)+(0,-0.35)$) -- (cc.south);
+\end{tikzpicture}
+\caption{Cơ chế bot liên lạc với máy chủ C\&C khi sử dụng DGA: (0) botmaster đăng ký trước một tên miền trong danh sách; (1) bot sinh danh sách và lần lượt truy vấn DNS, hầu hết nhận NXDOMAIN; (2) tên miền đã đăng ký phân giải ra địa chỉ máy chủ C\&C; (3) bot kết nối tới máy chủ C\&C (tên miền và địa chỉ IP chỉ mang tính minh hoạ)}
+\label{fig:botnet-dga}
+\end{figure}

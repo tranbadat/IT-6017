@@ -1,65 +1,154 @@
 % Chương 2 - Phụ trách: Trần Bá Đạt | Báo cáo ~6-7 trang
 \section[CƠ SỞ LÝ THUYẾT VÀ KHẢO SÁT CÁC CÔNG TRÌNH LIÊN QUAN]{CƠ SỞ LÝ THUYẾT VÀ KHẢO SÁT\\CÁC CÔNG TRÌNH LIÊN QUAN}\label{chap:co-so-ly-thuyet}
-\canviet{Phụ trách: Trần Bá Đạt. Dung lượng dự kiến: 6--7 trang. Mở chương bằng 2--3 câu giới thiệu nội dung chương.}
+
+Chương này trình bày các kiến thức nền tảng cần thiết để hiểu bài toán mà FANCI giải quyết: hệ thống tên miền và phản hồi NXDomain, cơ chế và cách phân loại DGA, và các nhóm tên miền không tồn tại. Phần tiếp theo khảo sát các công trình phát hiện DGA tiêu biểu trước FANCI và so sánh chúng theo một số tiêu chí chung.
 
 \subsection{Cơ sở lý thuyết}\label{sec:co-so-ly-thuyet}
 
-\subsubsection{Hệ thống tên miền và phản hồi NXDomain}
-\canviet{Cấu trúc tên miền (subdomain, TLD, public suffix), quy trình phân giải DNS, mã phản hồi NXDOMAIN (RCODE 3). Phân biệt ``phản hồi NXD'' (cả gói tin) và ``NXD'' (chỉ tên miền) như cách dùng trong bài báo.}
+\subsubsection{Hệ thống tên miền và phản hồi NXDomain}\label{sec:dns-nxd}
 
-\subsubsection{Thuật toán sinh tên miền và các lược đồ sinh}
-\canviet{Phân loại DGA theo Plohmann và cộng sự \cite{plohmann2016dga}: dựa trên số học (arithmetic), băm (hash), danh sách từ (wordlist), hoán vị (permutation). Ví dụ: Kraken, Corebot, Torpig (ngẫu nhiên); Matsnu (ghép từ tiếng Anh); VolatileCedar (hoán vị); Dyre (dạng băm) --- có thể vẽ lại Hình 1 của bài báo.}
+Hệ thống tên miền (DNS) là hệ thống phân tán, phân cấp dùng để ánh xạ tên miền sang địa chỉ IP \cite{rfc1035}. Một tên miền $d$ là chuỗi các nhãn (label) ngăn cách bởi dấu chấm, $d = s_n.\ldots.s_2.s_1$, trong đó nhãn cuối $s_1$ là tên miền cấp cao nhất (Top-Level Domain -- TLD) như \texttt{com}, \texttt{org} hay \texttt{de}. Danh sách TLD hợp lệ do IANA quản lý; tại thời điểm thực hiện nghiên cứu FANCI, vùng gốc (root zone) có 1.547 TLD \cite{schuppen2018fanci}. Hậu tố công khai (public suffix) là phần hậu tố mà dưới đó bất kỳ ai cũng có thể đăng ký tên miền, bao gồm các TLD và cả các hậu tố nhiều nhãn như \texttt{co.uk} hay \texttt{dyndns.org}; danh sách Public Suffix List do Mozilla duy trì có hơn 11.000 mục \cite{publicsuffix,schuppen2018fanci}. Nhãn đứng ngay trước public suffix cùng với public suffix tạo thành tên miền được đăng ký, còn các nhãn phía trước nữa là tên miền con do chủ sở hữu tự quản lý (Hình~\ref{fig:cau-truc-ten-mien}).
 
-\subsubsection{Phân loại tên miền không tồn tại: mAGD và bNXD}
-\canviet{mAGD do DGA sinh ra; bNXD gồm ba nhóm: lỗi gõ phím, cấu hình sai và lạm dụng DNS (hai nhóm sau gọi chung là bAGD). Ví dụ: Google Chrome sinh tên miền ngẫu nhiên để dò DNS hijacking, phần mềm diệt virus dùng DNS kiểm tra chữ ký (Hình 2 của bài báo).}
+Phân biệt này quan trọng đối với bài toán phát hiện DGA. Để tên miền phân giải được trên Internet công cộng, kẻ tấn công chỉ có thể chọn public suffix từ đúng danh sách mà người dùng hợp pháp sử dụng. Do đó public suffix hầu như không mang thông tin giúp phân biệt mAGD với tên miền lành tính; phần do DGA tự do sinh ra nằm ở các nhãn đứng trước public suffix \cite{schuppen2018fanci}.
 
-\subsection{Khảo sát các công trình liên quan}\label{sec:khao-sat}
-\canviet{Với mỗi hệ thống trình bày: mục tiêu, dữ liệu đầu vào, đặc trưng, phương pháp, kết quả công bố và điểm khác biệt so với FANCI.}
+\input{Figures/Hinh2_CauTrucTenMien}
 
-\subsubsection{Exposure}
-\canviet{\cite{bilge2014exposure}: phát hiện tên miền độc hại nói chung (phishing, phát tán mã độc), giám sát toàn bộ lưu lượng DNS, cần thông tin nhạy cảm (mẫu truy cập), đặc trưng trích xuất từ nhiều truy vấn; khó triển khai dạng dịch vụ.}
+Khi một ứng dụng cần phân giải tên miền, máy khách gửi truy vấn tới máy chủ phân giải đệ quy (recursive resolver), thường do doanh nghiệp hoặc nhà cung cấp dịch vụ Internet vận hành. Máy chủ này lần lượt hỏi máy chủ gốc, máy chủ quản lý TLD và máy chủ có thẩm quyền của tên miền. Nếu tên miền không tồn tại, máy chủ có thẩm quyền trả về mã phản hồi RCODE~3, gọi là NXDOMAIN (Name Error) \cite{rfc1035}. Với một mAGD chưa được đăng ký, chính máy chủ TLD trả lời NXDOMAIN vì không có ủy quyền nào cho tên miền đó. Phản hồi phủ định này được máy chủ đệ quy lưu đệm trong một khoảng thời gian nhất định \cite{rfc2308} rồi chuyển lại cho máy khách (Hình~\ref{fig:phan-giai-nxd}).
 
-\subsubsection{Winning with DNS Failures}
-\canviet{\cite{yadav2011winning}: kết hợp phản hồi DNS thành công và NXD để thu hẹp tập IP nghi là máy chủ C\&C; cần toàn bộ lưu lượng DNS và entropy của các truy vấn.}
+\input{Figures/Hinh2_PhanGiaiNXD}
 
-\subsubsection{Pleiades}
-\canviet{\cite{antonakakis2012throwaway}: phân cụm để phát hiện DGA mới, cây quyết định xen kẽ đa lớp để nhận diện DGA đã biết; đặc trưng lấy từ nhóm NXD của cùng một host. Nhóm 5 NXD: TPR 95--99\%, FPR 0,1--1,4\%; nhóm 10 NXD: TPR 99--100\%, FPR 0--0,2\%. Phát hiện 12 DGA mới sau 15 tháng tại một ISP.}
+Trong mạng doanh nghiệp hay mạng trường học, hầu hết thiết bị được cấu hình dùng máy chủ phân giải trung tâm, vì vậy đây là vị trí thuận lợi để thu thập phản hồi NXD của toàn mạng. Theo quy ước của bài báo FANCI, ``phản hồi NXD'' chỉ toàn bộ gói tin DNS (thường là gói UDP) chứa mã NXDOMAIN, còn ``NXD'' chỉ riêng tên miền nằm trong phản hồi đó \cite{schuppen2018fanci}. Báo cáo này sử dụng thống nhất quy ước trên.
 
-\subsubsection{Phoenix}
-\canviet{\cite{schiavoni2014phoenix}: thiên về tình báo (theo dõi hạ tầng C\&C của botnet) hơn là phát hiện; TPR 81,4--94,8\% trên 1.153.516 tên miền của 3 DGA.}
+\subsubsection{Thuật toán sinh tên miền và các lược đồ sinh}\label{sec:dga-luoc-do}
 
-\subsubsection{Phát hiện dựa trên NetFlow}
-\canviet{\cite{grill2015netflow}: chỉ dùng dữ liệu NetFlow/IPFIX, hướng tới bảo vệ quyền riêng tư; giả định máy nhiễm gửi truy vấn DNS mà không kết nối tới IP mới; ACC 88,77--99,89\% với 6 DGA.}
+DGA là một hàm nhận đầu vào là seed và sinh ra danh sách tên miền; cùng một seed luôn cho cùng một danh sách, nhờ đó bot và botmaster đồng bộ được với nhau mà không cần liên lạc trực tiếp. Plohmann và cộng sự \cite{plohmann2016dga} đã dịch ngược một lượng lớn họ mã độc và đề xuất phân loại DGA theo hai khía cạnh. Theo cách khởi tạo seed, DGA có thể không phụ thuộc thời gian (luôn sinh cùng một danh sách), phụ thuộc thời gian và tất định (danh sách thay đổi theo ngày nhưng tính trước được), hoặc phụ thuộc thời gian và không tất định (seed lấy từ dữ liệu không đoán trước được, chẳng hạn xu hướng trên mạng xã hội). Theo lược đồ sinh, DGA được chia thành bốn nhóm:
+\begin{itemize}
+    \item \textbf{Dựa trên số học (arithmetic-based):} tính một dãy giá trị rồi ánh xạ thành ký tự, tạo ra tên miền trông ngẫu nhiên.
+    \item \textbf{Dựa trên hàm băm (hash-based):} dùng biểu diễn thập lục phân của giá trị băm làm tên miền.
+    \item \textbf{Dựa trên danh sách từ (wordlist-based):} ghép các từ trong một từ điển nhúng sẵn trong mã độc, tạo ra tên miền trông giống ngôn ngữ tự nhiên.
+    \item \textbf{Dựa trên hoán vị (permutation-based):} hoán vị các ký tự của một tên miền gốc.
+\end{itemize}
 
-\subsubsection{DGArchive}
-\canviet{\cite{plohmann2016dga,dgarchive}: phân loại DGA, cơ sở dữ liệu mAGD dựng lại từ các DGA đã được dịch ngược; không tự động phát hiện nhưng cho phép lập danh sách đen. FANCI dùng DGArchive để làm sạch dữ liệu lành tính và làm nguồn dữ liệu độc hại.}
-
-\subsection{So sánh các phương pháp}\label{sec:so-sanh}
-\canviet{Điền Bảng~\ref{tab:so-sanh-phuong-phap} theo mục 5 của README và mục 6 của bài báo, sau đó viết 1--2 đoạn nhận xét.}
+Bảng~\ref{tab:vi-du-magd} trình bày ví dụ mAGD của sáu DGA được bài báo FANCI sử dụng để minh hoạ sự đa dạng này. mAGD của Kraken, Corebot và Torpig trông hoàn toàn ngẫu nhiên. Ngược lại, mAGD của Matsnu là các từ tiếng Anh ghép lại nên có tỷ lệ nguyên âm và cấu trúc gần với tên miền do con người đặt. VolatileCedar sinh các hoán vị của cùng một tên miền gốc, trông giống lỗi gõ phím. Dyre sinh các tên miền dài bằng nhau gồm tiền tố ba ký tự và một chuỗi dạng giá trị băm. Sự đa dạng này cho thấy một bộ phân loại tốt phải khai thác nhiều khía cạnh khác nhau của chuỗi tên miền chứ không chỉ mức độ ``ngẫu nhiên''.
 
 \begin{table}[H]
 \centering
-\caption{So sánh FANCI với các phương pháp phát hiện liên quan}
-\label{tab:so-sanh-phuong-phap}
-\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{2.4cm}|*{6}{>{\raggedright\arraybackslash}X|}}
+\caption{Ví dụ mAGD của sáu DGA (nguồn: \cite{schuppen2018fanci})}
+\label{tab:vi-du-magd}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}m{2.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}m{7.2cm}|}
 \hline
 \rowcolor{LightCyan}
-\textbf{\small Hệ thống} & \textbf{Đơn vị trích xuất đặc trưng} & \textbf{Cần theo dõi lưu lượng} & \textbf{Độ chính xác công bố} & \textbf{Tổng quát hoá} & \textbf{Hiệu năng} & \textbf{Triển khai dạng dịch vụ} \\
+\textbf{DGA} & \textbf{Đặc điểm} & \textbf{Ví dụ mAGD} \\
 \hline
-\small Exposure & \dots & \dots & \dots & \dots & \dots & \dots \\
+Kraken & Trông ngẫu nhiên & {\ttfamily\footnotesize bknllsnbfzqr.net\newline cdzogoexis.tv\newline hdozpcy.com} \\
 \hline
-\small Winning with DNS Failures & \dots & \dots & \dots & \dots & \dots & \dots \\
+Corebot & Trông ngẫu nhiên, có chữ số (lược đồ số học) & {\ttfamily\footnotesize 3lgrupwdivsfm2w4kng2iha.ddns.net\newline ojyvips6klsnqpy.in\newline af5fmb78sbuno4c.ws} \\
 \hline
-\small Pleiades & \dots & \dots & \dots & \dots & \dots & \dots \\
+Torpig & Trông ngẫu nhiên & {\ttfamily\footnotesize rbtqebf.biz\newline qaskebf.com\newline qaskebf.biz} \\
 \hline
-\small Phoenix & \dots & \dots & \dots & \dots & \dots & \dots \\
+Matsnu & Ghép các từ tiếng Anh (lược đồ danh sách từ) & {\ttfamily\footnotesize salt-amount-pattern.com\newline company-depend.com\newline btkindasaladmw.com} \\
 \hline
-\small NetFlow & \dots & \dots & \dots & \dots & \dots & \dots \\
+VolatileCedar & Hoán vị một tên miền gốc (lược đồ hoán vị) & {\ttfamily\footnotesize getadobeflashplayer.net\newline egtadobeflashplayer.net\newline etadobgeflashplayer.net} \\
 \hline
-\small \textbf{FANCI} & \dots & \dots & \dots & \dots & \dots & \dots \\
+Dyre & Tiền tố 3 ký tự và chuỗi dạng giá trị băm (lược đồ băm) & {\ttfamily\scriptsize kea174638023becce522b1ae8f6caadf80.to\newline l8743f7debd036e5de923bbd70a191d009.in\newline ma4dbf2b2ef5bb0d01a065198fab552b25.hk} \\
 \hline
 \end{tabularx}
 \end{table}
 
+\subsubsection{Phân loại tên miền không tồn tại: mAGD và bNXD}\label{sec:phan-loai-nxd}
+
+Các NXD quan sát được trong một mạng thuộc hai lớp \cite{schuppen2018fanci}. Lớp thứ nhất là mAGD (malicious algorithmically-generated domain): tên miền do DGA của mã độc sinh ra nhưng không được botmaster đăng ký. Lớp thứ hai là bNXD (benign non-existent domain): tên miền không tồn tại có nguồn gốc lành tính, gồm ba nhóm chính (Hình~\ref{fig:phan-loai-nxd}):
+\begin{itemize}
+    \item \textbf{Lỗi gõ phím:} người dùng gõ sai một tên miền có thật.
+    \item \textbf{Cấu hình sai:} thiết bị hoặc phần mềm truy vấn tên miền không tồn tại (hoặc không còn tồn tại) do lỗi cấu hình hay lỗi phần mềm, ví dụ tên máy in, máy chủ nội bộ hoặc tên miền \texttt{.local} bị gửi ra máy chủ phân giải.
+    \item \textbf{Lạm dụng DNS:} phần mềm hợp pháp dùng DNS cho mục đích khác với thiết kế ban đầu. Trình duyệt Google Chrome truy vấn các tên miền ngẫu nhiên để phát hiện việc chiếm quyền phân giải DNS (DNS hijacking); một số phần mềm diệt virus dùng truy vấn DNS để kiểm tra chữ ký mã độc.
+\end{itemize}
+Hai nhóm sau được gọi chung là tên miền sinh tự động lành tính (bAGD) vì, giống mAGD, chúng được sinh ra bằng thuật toán nhưng phục vụ mục đích hợp pháp. Bảng~\ref{tab:vi-du-bnxd} trình bày ví dụ bNXD quan sát được tại mạng của Đại học RWTH Aachen.
+
+\input{Figures/Hinh2_PhanLoaiNXD}
+
+\begin{table}[H]
+\centering
+\caption{Ví dụ bNXD tại mạng của Đại học RWTH Aachen (nguồn: \cite{schuppen2018fanci})}
+\label{tab:vi-du-bnxd}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}m{3.2cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Nhóm} & \textbf{Ví dụ bNXD} \\
+\hline
+Lỗi gõ phím & {\ttfamily\footnotesize univresity.edu,\quad iieee.org,\quad mcirosfot.com,\quad adobe.comm} \\
+\hline
+Lạm dụng DNS (Google Chrome) & {\ttfamily\footnotesize wfnfhde,\quad kaqoeizerbo,\quad ahxurofbdughh.rwth-aachen.de,\newline pphrncxkxe.itsec.rwth-aachen.de} \\
+\hline
+Cấu hình sai & {\ttfamily\footnotesize brn001ba99bbcd9.matha.rwth-aachen.de,\quad cache-cdn.kalaydo.com,\newline fileserverfb6.fb6.rwth-aachen.de,\quad de-swyx-2.fraba.local} \\
+\hline
+\end{tabularx}
+\end{table}
+
+Chính nhóm bAGD làm cho bài toán trở nên khó: một chuỗi trông ngẫu nhiên chưa chắc là độc hại, như các truy vấn của Google Chrome trong Bảng~\ref{tab:vi-du-bnxd}. Ngược lại, mAGD của DGA dựa trên danh sách từ như Matsnu lại trông giống tên miền do con người đặt. Vì vậy không thể phân loại chỉ bằng một ngưỡng đơn giản, chẳng hạn ngưỡng entropy, mà cần một mô hình học máy kết hợp nhiều đặc trưng và được học từ dữ liệu có nhãn. Đây chính là hướng tiếp cận của FANCI (Chương~\ref{chap:fanci}).
+
+\subsection{Khảo sát các công trình liên quan}\label{sec:khao-sat}
+
+Lưu lượng DNS, gồm cả các truy vấn phân giải thành công và không thành công, đã được nhiều nghiên cứu sử dụng làm nguồn thông tin chính hoặc bổ sung để phát hiện hoạt động độc hại trong mạng. Các nghiên cứu này khác nhau về mục tiêu: một số tập trung xác định máy chủ C\&C, một số phát hiện mAGD, số khác xác định thiết bị bị nhiễm hoặc phát hiện tên miền độc hại nói chung \cite{schuppen2018fanci}. Phần này trình bày các công trình tiêu biểu mà bài báo FANCI dùng để so sánh.
+
+\subsubsection{Exposure}
+
+Bilge và cộng sự \cite{bilge2014exposure} xây dựng Exposure, một dịch vụ phân tích DNS thụ động (passive DNS) nhằm phát hiện và báo cáo tên miền độc hại nói chung, bao gồm tên miền dùng cho botnet, lừa đảo (phishing) và phát tán mã độc, chứ không riêng mAGD. Exposure giám sát toàn bộ lưu lượng DNS, kể cả các truy vấn phân giải thành công, và dùng bộ phân loại học máy trên một tập nhỏ đặc trưng được chọn lọc, chia thành các nhóm dựa trên thời gian, dựa trên bản ghi trả lời DNS, dựa trên giá trị TTL và dựa trên tên miền. Nhiều đặc trưng trong số đó chỉ tính được khi tương quan nhiều truy vấn, ví dụ mẫu truy cập theo thời gian của một tên miền. Độ chính xác của Exposure tương đương FANCI và cũng được đánh giá trên dữ liệu thực. Tuy nhiên, do cần thông tin ngữ cảnh nhạy cảm, Exposure kém linh hoạt hơn FANCI, nhất là khi triển khai dưới dạng dịch vụ \cite{schuppen2018fanci}.
+
+\subsubsection{Winning with DNS Failures}
+
+Yadav và Reddy \cite{yadav2011winning} là những người đầu tiên kết hợp cả phản hồi DNS thành công và phản hồi NXD để phát hiện botnet. Hệ thống của họ nhắm tới việc xác định địa chỉ IP của máy chủ C\&C trong các botnet dùng DGA, bằng cách thu hẹp dần tập địa chỉ IP nghi ngờ qua nhiều bước lọc. Việc lọc cần truy cập toàn bộ lưu lượng phân giải thành công (để đếm số tên miền cùng trỏ tới một địa chỉ IP), các phản hồi NXD xảy ra quanh thời điểm truy vấn thành công, và entropy của các truy vấn thất bại và thành công. Đầu ra của hệ thống là tập địa chỉ IP có khả năng là máy chủ C\&C \cite{schuppen2018fanci}.
+
+\subsubsection{Pleiades}
+
+Antonakakis và cộng sự \cite{antonakakis2012throwaway} giới thiệu Pleiades, hệ thống vừa khám phá DGA mới vừa phát hiện DGA đã biết. DGA mới được khám phá bằng cách phân cụm các NXD, còn DGA đã biết được nhận diện bằng học có giám sát với biến thể đa lớp của cây quyết định xen kẽ (alternating decision tree). Các đặc trưng thống kê (entropy, n-gram) và cấu trúc (độ dài, phân bố TLD, số cấp tên miền con) đều được trích xuất từ một nhóm phản hồi NXD của cùng một máy. Khi triển khai trong 15 tháng tại mạng của một ISP lớn, Pleiades phát hiện 12 DGA mới, trong đó sáu DGA hoàn toàn mới và sáu DGA là biến thể của DGA đã biết. Với nhóm 5 NXD mỗi máy, TPR đạt 95--99\% và FPR 0,1--1,4\%; với nhóm 10 NXD, TPR đạt 99--100\% và FPR 0--0,2\%. Tuy vậy, dữ liệu lành tính dùng để đánh giá là 10.000 tên miền hàng đầu của Alexa thay vì NXD thực, dữ liệu độc hại chỉ gồm 60.000 phản hồi NXD của bốn DGA (Bobax, Conficker, Sinowal, Murofet), và khả năng tổng quát hoá chưa được đánh giá \cite{schuppen2018fanci}.
+
+\subsubsection{Phoenix}
+
+Schiavoni và cộng sự \cite{schiavoni2014phoenix} đề xuất Phoenix, hệ thống theo dõi và thu thập tình báo về botnet dùng DGA. Khác với Pleiades, Phoenix tập trung vào hoạt động tình báo, đặc biệt là theo dõi hạ tầng C\&C của botnet theo dải địa chỉ IP, nhưng cũng có khả năng gán nhãn lưu lượng DNS là liên quan tới DGA hoặc lành tính. Khi đánh giá trên 1.153.516 tên miền gồm mAGD của ba DGA và bNXD lấy từ dữ liệu passive DNS, Phoenix đạt TPR 81,4--94,8\%, thấp hơn đáng kể so với FANCI. Do các đặc trưng của Phoenix kém gọn nhẹ và cần theo dõi lưu lượng, hệ thống được đánh giá là chậm hơn FANCI \cite{schuppen2018fanci}.
+
+\subsubsection{Phát hiện dựa trên NetFlow}
+
+Grill và cộng sự \cite{grill2015netflow} hướng tới phát hiện mã độc dùng DGA trong mạng quy mô lớn mà vẫn bảo vệ quyền riêng tư. Hệ thống chỉ dùng dữ liệu NetFlow theo chuẩn IPFIX, tức siêu dữ liệu tổng hợp của các gói tin trao đổi giữa hai cặp địa chỉ IP và cổng (địa chỉ, thời điểm, số byte, số gói tin). Phương pháp phát hiện bất thường dựa trên giả định: một máy bình thường truy vấn DNS rồi kết nối tới địa chỉ IP vừa phân giải được, còn máy nhiễm mã độc dùng DGA thường xuyên gửi truy vấn DNS mà không có kết nối tiếp theo. Qua ba thí nghiệm với các loại máy, quy mô mạng và thời điểm trong ngày khác nhau trên sáu DGA, độ chính xác (ACC) đạt 88,77--99,89\% tuỳ cấu hình, thấp hơn FANCI. Do dựa trên việc theo dõi luồng mạng quy mô lớn, phương pháp này cũng được đánh giá là kém hiệu quả hơn về tốc độ \cite{schuppen2018fanci}.
+
+\subsubsection{DGArchive}
+
+Plohmann và cộng sự \cite{plohmann2016dga} thực hiện một nghiên cứu đo lường toàn diện về mã độc dùng DGA, dựa trên việc thu thập và dịch ngược mẫu mã độc. Nghiên cứu có ba đóng góp chính: bộ phân loại DGA theo seed và lược đồ sinh (Mục~\ref{sec:dga-luoc-do}); cơ sở dữ liệu DGArchive \cite{dgarchive} chứa các mAGD được sinh lại từ những DGA đã dịch ngược với các seed đã biết; và phân tích bức tranh các mAGD đã được đăng ký. DGArchive không tự động phát hiện DGA nhưng cung cấp phương tiện để lập danh sách đen các mAGD đã biết. FANCI sử dụng DGArchive theo hai cách: làm sạch dữ liệu lành tính trước khi huấn luyện và làm nguồn dữ liệu độc hại có nhãn tin cậy \cite{schuppen2018fanci}.
+
+\subsection{So sánh các phương pháp}\label{sec:so-sanh}
+
+Bảng~\ref{tab:so-sanh-phuong-phap} tổng hợp các phương pháp đã khảo sát theo sáu tiêu chí: đơn vị dữ liệu dùng để trích xuất đặc trưng, việc có cần theo dõi lưu lượng hay không, độ chính xác được công bố, khả năng tổng quát hoá, hiệu năng và khả năng triển khai dưới dạng dịch vụ. DGArchive không được đưa vào bảng vì đây là cơ sở dữ liệu chứ không phải hệ thống phát hiện.
+
+\begin{table}[H]
+\centering
+\caption{So sánh FANCI với các phương pháp phát hiện liên quan (tổng hợp từ \cite{schuppen2018fanci})}
+\label{tab:so-sanh-phuong-phap}
+\renewcommand{\tabularxcolumn}[1]{>{\footnotesize}m{#1}}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash\footnotesize}m{2cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash\footnotesize}m{1.4cm}|*{4}{>{\raggedright\arraybackslash}X|}}
+\hline
+\rowcolor{LightCyan}
+\textbf{Hệ thống} & \textbf{Đơn vị trích xuất đặc trưng} & \textbf{Cần theo dõi lưu lượng} & \textbf{Độ chính xác công bố} & \textbf{Tổng quát hoá} & \textbf{Hiệu năng} & \textbf{Triển khai dạng dịch vụ} \\
+\hline
+Exposure & Nhiều truy vấn DNS (toàn bộ lưu lượng) & Có & Tương đương FANCI (tên miền độc hại nói chung) & Đánh giá trên dữ liệu thực & Ít được công bố & Hạn chế, cần dữ liệu ngữ cảnh nhạy cảm \\
+\hline
+Winning with DNS Failures & Truy vấn thành công và NXD liên quan & Có & Mục tiêu khác (xác định IP C\&C) & -- & Ít được công bố & Hạn chế, cần toàn bộ lưu lượng DNS \\
+\hline
+Pleiades & Nhóm 5--10 NXD của một máy & Có & TPR 95--100\%, FPR 0--1,4\% & Chưa được đánh giá & Kém hơn FANCI (dự đoán) & Hạn chế \\
+\hline
+Phoenix & Nhóm tên miền & Có & TPR 81,4--94,8\% & -- & Kém hơn FANCI (dự đoán) & Hạn chế \\
+\hline
+NetFlow & Luồng NetFlow/ IPFIX & Có & ACC 88,77--99,89\% & Thử trên nhiều loại máy, quy mô mạng & Kém hơn FANCI (dự đoán) & Hạn chế, cần dữ liệu luồng của mạng \\
+\hline
+\textbf{FANCI} & \textbf{Một NXD đơn lẻ} & \textbf{Không} & ACC 99,76\%, FPR 0,25\% (nhiều DGA) & Tốt: huấn luyện ở mạng này, dùng ở mạng khác vẫn đạt ACC $\geq$ 99,5\% & 0,0025 giây/mẫu & \textbf{Có}, chỉ cần gửi tên miền \\
+\hline
+\end{tabularx}
+
+\vspace{2pt}
+{\footnotesize \textit{Ghi chú:} ``--'' là không có số liệu tương ứng trong \cite{schuppen2018fanci}; ``dự đoán'' là nhận định của tác giả FANCI do phương pháp cần theo dõi lưu lượng.}
+\end{table}
+
+Từ Bảng~\ref{tab:so-sanh-phuong-phap} có thể rút ra ba nhận xét. Thứ nhất, tất cả các phương pháp trước FANCI đều phải tương quan thông tin từ nhiều truy vấn, phản hồi DNS hoặc luồng mạng. Việc theo dõi này đòi hỏi lưu trạng thái theo từng máy, làm chậm quyết định vì phải chờ thu đủ một nhóm truy vấn, và buộc hệ thống tiếp cận dữ liệu nhạy cảm về hành vi người dùng. Thứ hai, nhiều phương pháp dựa trên phân cụm nên kết quả cần chuyên gia gán nhãn thủ công. Thứ ba, các công trình hầu như không công bố chi phí thời gian và bộ nhớ; đồng thời việc so sánh trực tiếp độ chính xác chỉ mang tính tương đối, vì mỗi hệ thống có mục tiêu khác nhau và được đánh giá trên các tập dữ liệu không công khai \cite{schuppen2018fanci}.
+
 \subsection{Tiểu kết chương}
-\canviet{Tóm tắt: các phương pháp trước đều cần theo dõi nhóm truy vấn, đây là khoảng trống mà FANCI giải quyết; dẫn sang Chương~\ref{chap:fanci}.}
+
+Chương này đã trình bày cơ chế phân giải DNS và phản hồi NXDomain, cách DGA sinh tên miền với bốn lược đồ sinh chính, và sự phân biệt giữa mAGD và bNXD, trong đó nhóm bAGD là nguyên nhân khiến bài toán không thể giải bằng các quy tắc đơn giản. Khảo sát các công trình liên quan cho thấy các phương pháp trước đều cần theo dõi và tương quan nhiều truy vấn, dẫn tới chi phí xử lý, độ trễ và vấn đề quyền riêng tư. Khoảng trống này là động lực để FANCI đề xuất phân loại từng NXD chỉ dựa trên chính tên miền, được trình bày chi tiết ở Chương~\ref{chap:fanci}.

@@ -1,0 +1,27 @@
+% Hình: quá trình phân giải một tên miền không tồn tại (Chương 2)
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >={Stealth[length=2.2mm]},
+  ben/.style={draw, rounded corners=2pt, align=center, fill=blue!8, minimum width=2.9cm, minimum height=1cm},
+  thongdiep/.style={->, thick},
+  nhanthongdiep/.style={above, font=\footnotesize, inner sep=2pt}]
+  % Các bên tham gia
+  \node[ben] (kh) at (0,0) {Máy khách};
+  \node[ben, fill=orange!15] (dq) at (4.3,0) {Máy chủ phân giải\\đệ quy};
+  \node[ben] (goc) at (8.6,0) {Máy chủ gốc};
+  \node[ben] (tld) at (12.9,0) {Máy chủ TLD\\\texttt{.net}};
+  \foreach \n in {kh,dq,goc,tld} {\draw[gray, dashed] (\n.south) -- ++(0,-5.1);}
+  % Các thông điệp
+  \draw[thongdiep] (0,-1.1) -- node[nhanthongdiep] {(1) \texttt{bknllsnbfzqr.net}?} (4.3,-1.1);
+  \draw[thongdiep] (4.3,-1.9) -- node[nhanthongdiep] {(2) \texttt{bknllsnbfzqr.net}?} (8.6,-1.9);
+  \draw[thongdiep] (8.6,-2.7) -- node[nhanthongdiep] {(3) hỏi máy chủ \texttt{.net}} (4.3,-2.7);
+  \draw[thongdiep] (4.3,-3.5) -- node[nhanthongdiep] {(4) \texttt{bknllsnbfzqr.net}?} (12.9,-3.5);
+  \draw[thongdiep, red!70!black] (12.9,-4.3) -- node[nhanthongdiep] {(5) NXDOMAIN (RCODE = 3)} (4.3,-4.3);
+  \draw[thongdiep, red!70!black] (4.3,-5.1) -- node[nhanthongdiep] {(6) NXDOMAIN} (0,-5.1);
+  % Điểm quan sát
+  \node[draw, red!70!black, rounded corners=2pt, font=\footnotesize, align=center, fill=white]
+    at (4.3,-6.1) {Điểm thu thập phản hồi NXD của toàn mạng\\(vị trí triển khai FANCI)};
+\end{tikzpicture}
+\caption{Quá trình phân giải một tên miền chưa được đăng ký: máy chủ TLD trả về NXDOMAIN, máy chủ phân giải đệ quy lưu đệm phản hồi phủ định và chuyển lại cho máy khách}
+\label{fig:phan-giai-nxd}
+\end{figure}
