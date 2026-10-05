@@ -10,11 +10,11 @@ Mức xác minh cần được phân biệt:
 
 | Nội dung | Kết quả đánh giá | Mức bằng chứng |
 |---|---|---|
-| Số liệu ở các bảng 4.1, 4.3–4.8 | Khớp công bố, không phát hiện ô bị chép sai | Đối chiếu bài báo, chưa tính lại từ dữ liệu gốc |
+| Số liệu công bố được giữ trong các bảng và phần phân tích | Khớp công bố, không phát hiện giá trị bị chép sai | Đối chiếu bài báo, chưa tính lại từ dữ liệu gốc |
 | Công thức ACC, TPR, TNR, FPR, FNR và precision theo tỷ lệ lớp | Đúng với các điều kiện được nêu | Kiểm tra toán học |
 | Dữ liệu RWTH và Siemens | Tác giả công bố là bản ghi DNS thực năm 2017 | Nhóm chưa trực tiếp thu thập hoặc kiểm toán dữ liệu đó |
 | Kho DGArchive | Nguồn mAGD sinh từ DGA đã dịch ngược, theo mô tả của tác giả | Nhãn theo thuật toán sinh; không chứng minh mọi miền là C2 đang hoạt động |
-| Thực nghiệm 360 mẫu ở Mục 4.9 | Đúng, tái tạo được | Chạy lại mã và tính lại độc lập từ CSV |
+| Thực nghiệm 360 mẫu ở Mục 4.7 | Đúng, tái tạo được | Chạy lại mã và tính lại độc lập từ CSV |
 | Hiệu quả trên mạng hiện nay | Chưa được đánh giá trong dự án | Không có bản ghi mạng mới hoặc mô hình FANCI được tái lập |
 | Văn phong và giới hạn suy luận | Đã chỉnh những chỗ thiếu điều kiện hoặc dễ hiểu sai | Phân biệt kết quả công bố, phép tính của nhóm và minh họa tổng hợp |
 
@@ -34,18 +34,18 @@ Vì vậy, câu trả lời chính xác là: **chương có phân tích kết qu
 |---|---|---|
 | Đoạn phạm vi đầu chương | “Không tự huấn luyện lại” chưa nói đủ mức xác minh | Ghi rõ không có dữ liệu, mô hình và ma trận nhầm lẫn gốc; chỉ đối chiếu công bố |
 | Bảng 4.1 | Có thể hiểu 1.344 ngày là độ dài lịch của khoảng ngày DGArchive | Viết “1.344 ngày có dữ liệu theo tác giả”, trong khoảng 12/2/2014–30/1/2018 |
-| Mục 4.2 | Thiếu bước lấy trung bình các fold; chưa nêu đủ điều kiện của đẳng thức ACC | Nêu mức tổng hợp 5-fold và điều kiện cân bằng ngay trong tập kiểm tra đang xét |
-| Mục 4.3.2 | “Sáu DGA có ACC dưới 98%” dễ bị hiểu là trung bình riêng của sáu họ | Viết các kết quả dưới ngưỡng tập trung ở sáu DGA, theo tác giả |
-| Mục 4.3.4 | “Bộ đặc trưng học” sai đối tượng; kết luận về ghi nhớ quá mạnh | Viết mô hình có khả năng khái quát trong phạm vi LOGO đã xét |
-| Mục 4.3.4 | SD nhỏ dễ bị hiểu là mọi họ đều có hiệu quả ổn định | Không diễn giải SD tổng hợp thành SD trực tiếp giữa 59 họ hay 1.180 lượt LOGO |
-| Mục 4.6 | “Chưa biết” dùng “hoặc” không đúng nghĩa của nguồn | Đổi thành không có trong DGArchive **và cũng không** tìm thấy qua các nguồn thông dụng tại thời điểm viết bài |
-| Mục 4.6 | Bản ghi mạng thực dễ bị hiểu là triển khai trực tuyến đã đo hoặc kiểm tra nghiêm ngặt theo chiều thời gian | Nêu rõ thiếu thời điểm chốt tập mAGD và phép đo độ trễ vận hành trực tuyến |
-| Mục 4.6 | Ước lượng FPR dễ bị hiểu là tỷ lệ đã xác minh hoặc cận trên chắc chắn | Làm rõ thiếu thông tin về mẫu số và nhãn đầy đủ; phép chia đối chiếu là tính toán của nhóm |
-| Mục 4.7 | Hai mức lưu lượng trung bình trong nguồn không nhất quán | Nêu phép tính từ 700 triệu/31 ngày, giữ số công bố theo từng ngữ cảnh |
-| Mục 4.8 | Tên mục có thể khiến người đọc nghĩ cả lớp độc hại đã phân giải thành công | Làm rõ nguồn không xác nhận điều đó; đây chưa phải phép đo phát hiện C2 đã xác minh |
-| Mục 4.9 | Khoảng entropy làm tròn không cho đúng số đếm 109 | Ghi số đếm sử dụng biên chưa làm tròn trong JSON |
-| Mục 4.9 | Độ dài nhãn có thể bị đồng nhất với độ dài toàn tên miền FANCI | Nêu rõ khác biệt tiền xử lý; entropy không đo thứ tự ký tự |
-| Mục 4.10 | “Các tập độc lập” dễ bị hiểu là không trùng mẫu | Đổi thành các tập lấy mẫu riêng; chỉ ra họ ít mẫu được dùng lại giữa các tập |
+| Mục 4.1 | Thiếu bước lấy trung bình các fold; chưa nêu đủ điều kiện của đẳng thức ACC | Nêu mức tổng hợp 5-fold và điều kiện cân bằng ngay trong tập kiểm tra đang xét |
+| Mục 4.2 | “Sáu DGA có ACC dưới 98%” dễ bị hiểu là trung bình riêng của sáu họ | Viết các kết quả dưới ngưỡng tập trung ở sáu DGA, theo tác giả |
+| Mục 4.2 | “Bộ đặc trưng học” sai đối tượng; kết luận về ghi nhớ quá mạnh | Viết mô hình có khả năng khái quát trong phạm vi LOGO đã xét |
+| Mục 4.2 | SD nhỏ dễ bị hiểu là mọi họ đều có hiệu quả ổn định | Không diễn giải SD tổng hợp thành SD trực tiếp giữa 59 họ hay 1.180 lượt LOGO |
+| Mục 4.5 | “Chưa biết” dùng “hoặc” không đúng nghĩa của nguồn | Đổi thành không có trong DGArchive **và cũng không** tìm thấy qua các nguồn thông dụng tại thời điểm viết bài |
+| Mục 4.5 | Bản ghi mạng thực dễ bị hiểu là triển khai trực tuyến đã đo hoặc kiểm tra nghiêm ngặt theo chiều thời gian | Nêu rõ thiếu thời điểm chốt tập mAGD và phép đo độ trễ vận hành trực tuyến |
+| Mục 4.5 | Ước lượng FPR dễ bị hiểu là tỷ lệ đã xác minh hoặc cận trên chắc chắn | Làm rõ thiếu thông tin về mẫu số và nhãn đầy đủ; phép chia đối chiếu là tính toán của nhóm |
+| Mục 4.6 | Hai mức lưu lượng trung bình trong nguồn không nhất quán | Nêu phép tính từ 700 triệu/31 ngày, giữ số công bố theo từng ngữ cảnh |
+| Mục 4.6 | Tên mục có thể khiến người đọc nghĩ cả lớp độc hại đã phân giải thành công | Làm rõ nguồn không xác nhận điều đó; đây chưa phải phép đo phát hiện C2 đã xác minh |
+| Mục 4.7 | Khoảng entropy làm tròn không cho đúng số đếm 109 | Ghi số đếm sử dụng biên chưa làm tròn trong JSON |
+| Mục 4.7 | Độ dài nhãn có thể bị đồng nhất với độ dài toàn tên miền FANCI | Nêu rõ khác biệt tiền xử lý; entropy không đo thứ tự ký tự |
+| Mục 4.8 | “Các tập độc lập” dễ bị hiểu là không trùng mẫu | Đổi thành các tập lấy mẫu riêng; chỉ ra họ ít mẫu được dùng lại giữa các tập |
 
 ## Các bất nhất hoặc giới hạn của bài báo gốc
 
@@ -88,4 +88,12 @@ Các bảng số liệu, phương trình, nhãn tham chiếu và khóa trích d�
 
 Có thể dùng nội dung này cho tiểu luận và thuyết trình, với cách giới thiệu: “Nhóm phân tích kết quả công bố của FANCI và thực hiện minh họa đặc trưng trên dữ liệu tổng hợp.” Không giới thiệu là đã tái lập toàn bộ FANCI, đã xác minh 10 DGA mới hoặc đã đo độ chính xác trên mạng thực của nhóm.
 
-Giới hạn của cả báo cáo cần xử lý riêng khi chuẩn bị nộp: README đặt mục tiêu 15–30 trang, còn bản chương 4 chi tiết chiếm hơn mức dự kiến 5–6 trang cho chương này. Đợt rà soát hiện tại giữ độ chi tiết theo yêu cầu, không tự rút gọn nội dung các chương khác.
+### Bản rút gọn theo yêu cầu 6–7 trang
+
+Chương 4 đã được rút từ 15 xuống **6 trang nội dung** theo định dạng của báo cáo: cỡ chữ 13 pt, giãn dòng 1,2 và lề hiện có. Bản PDF riêng có 7 trang, gồm 6 trang chương và 1 trang tài liệu tham khảo. Khi biên dịch trong báo cáo chính, chương nằm ở trang 22–27. Không giảm cỡ chữ hoặc thay đổi lề để đạt số trang.
+
+Nội dung còn 8 mục, 4 bảng và 1 hình. Bảng tám hàng RF/SVM giữ nguyên các giá trị ACC, SD, TPR và FPR; bảng chuyển mạng giữ bốn hàng RF. Các bảng danh sách trắng, DNS thực, tốc độ và miền phân giải thành công được gộp vào văn xuôi với các kết quả chính. Bảng ma trận nhầm lẫn được thay bằng quy ước TP/TN/FP/FN và ba công thức ACC/TPR/FPR. Minh họa 360 mẫu, mã nguồn và kết quả tái tạo không thay đổi.
+
+Bản ngắn vẫn phân biệt seed mới với DGA bị giữ lại, kết quả tác giả với minh họa nhóm, giảm số FP với FPR, và ước lượng FPR thực tế với độ đo có nhãn. Các giới hạn về dữ liệu lịch sử, nhãn, thứ tự thời gian, tổng hợp LOGO, tỷ lệ lớp và tải đỉnh được giữ một lần để tránh lặp. Các nhận xét về TNR/FNR và bảng đầy đủ ở phần rà soát trên mô tả đợt kiểm tra bản chi tiết trước khi rút gọn.
+
+Đã biên dịch cả báo cáo và bản chương riêng; chương không có tham chiếu chưa xác định hoặc nội dung tràn lề. Các chương khác giữ nguyên; mục tiêu tổng số trang của cả báo cáo trong README vẫn cần được xem xét riêng khi hoàn thiện báo cáo.
