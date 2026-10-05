@@ -1,0 +1,145 @@
+{
+  "experiment": "Offline simplified string-feature demonstration",
+  "seed": 2018,
+  "sample_count_total": 360,
+  "source": "Fully synthetic fixtures defined in feature_demo.py; no DNS data",
+  "groups": {
+    "readable_control": {
+      "sample_count": 120,
+      "length_counts": {
+        "9": 2,
+        "10": 12,
+        "11": 34,
+        "12": 50,
+        "13": 20,
+        "14": 2
+      },
+      "features": {
+        "length": {
+          "mean": 11.666666666666666,
+          "std_population": 0.9775252199076787,
+          "min": 9,
+          "max": 14
+        },
+        "vowel_ratio": {
+          "mean": 0.3797146834646835,
+          "std_population": 0.06391650874850248,
+          "min": 0.2222222222222222,
+          "max": 0.5454545454545454
+        },
+        "entropy_bits": {
+          "mean": 3.0797350113712034,
+          "std_population": 0.20564083005900008,
+          "min": 2.556656707462823,
+          "max": 3.4594316186372973
+        },
+        "repeated_char_ratio": {
+          "mean": 0.26033850408850406,
+          "std_population": 0.14664081109859586,
+          "min": 0.0,
+          "max": 1.0
+        }
+      }
+    },
+    "uniform_letters": {
+      "sample_count": 120,
+      "length_counts": {
+        "9": 2,
+        "10": 12,
+        "11": 34,
+        "12": 50,
+        "13": 20,
+        "14": 2
+      },
+      "features": {
+        "length": {
+          "mean": 11.666666666666666,
+          "std_population": 0.9775252199076787,
+          "min": 9,
+          "max": 14
+        },
+        "vowel_ratio": {
+          "mean": 0.1773812298812299,
+          "std_population": 0.10689048684834657,
+          "min": 0.0,
+          "max": 0.45454545454545453
+        },
+        "entropy_bits": {
+          "mean": 3.1396995715737592,
+          "std_population": 0.252172807199004,
+          "min": 2.4464393446710155,
+          "max": 3.7004397181410926
+        },
+        "repeated_char_ratio": {
+          "mean": 0.2112443806193806,
+          "std_population": 0.12974578709325546,
+          "min": 0.0,
+          "max": 0.5714285714285714
+        }
+      }
+    },
+    "wordlist_pairs": {
+      "sample_count": 120,
+      "length_counts": {
+        "9": 2,
+        "10": 12,
+        "11": 34,
+        "12": 50,
+        "13": 20,
+        "14": 2
+      },
+      "features": {
+        "length": {
+          "mean": 11.666666666666666,
+          "std_population": 0.9775252199076787,
+          "min": 9,
+          "max": 14
+        },
+        "vowel_ratio": {
+          "mean": 0.35928973803973807,
+          "std_population": 0.06109518618678095,
+          "min": 0.2,
+          "max": 0.6
+        },
+        "entropy_bits": {
+          "mean": 3.037826891229598,
+          "std_population": 0.2371478331454298,
+          "min": 2.321928094887362,
+          "max": 3.4182958340544896
+        },
+        "repeated_char_ratio": {
+          "mean": 0.30064033189033185,
+          "std_population": 0.15361409888353975,
+          "min": 0.09090909090909091,
+          "max": 1.0
+        }
+      }
+    }
+  },
+  "entropy_interval_overlap_with_controls": {
+    "uniform_letters": {
+      "intersection_min": 2.556656707462823,
+      "intersection_max": 3.4594316186372973,
+      "samples_inside_control_entropy_range": 109
+    },
+    "wordlist_pairs": {
+      "intersection_min": 2.556656707462823,
+      "intersection_max": 3.4182958340544896,
+      "samples_inside_control_entropy_range": 116
+    }
+  },
+  "feature_preprocessing": "lowercase; remove literal .invalid; analyze a-z label only",
+  "vowels": "aeiou",
+  "entropy_unit": "bits per empirical character distribution",
+  "standard_deviation": "population; denominator n",
+  "python_version": "3.12.14",
+  "limitations": [
+    "No FANCI classifier, model training, 21-feature replication, or evaluation metrics",
+    "Synthetic readable controls are not verified benign NXDomain traffic",
+    "Simulations do not implement or identify any real malware DGA family",
+    "All labels are alphabetic and have one level before .invalid",
+    "Matched lengths do not remove vocabulary and generation-process biases",
+    "Entropy alone is not a measure of maliciousness or algorithmic randomness"
+  ],
+  "csv_sha256": "b3f39e0d7b5bbcb40d207c1dd4ece581f34404aa30f2462ad64136dddbd29137"
+}

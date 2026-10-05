@@ -26,4 +26,15 @@ Nguyễn Đồng Hoàng & Chương~\ref{chap:fanci}: kiến trúc 3 module, 21 �
 
 \clearpage
 \section{MÃ NGUỒN THỰC NGHIỆM MINH HOẠ}\label{app:ma-nguon}
-\canviet{Tuỳ chọn. Mã nguồn script Python ở Mục~\ref{sec:thuc-nghiem-nhom}, hoặc đường dẫn tới repository GitHub của nhóm.}
+Thực nghiệm tại Mục~\ref{sec:thuc-nghiem-nhom} được thực hiện bằng script \path{Experiments/feature_demo.py} trong repository của nhóm. Script sinh 360 tên miền tổng hợp với seed 2018, trích xuất bốn đặc trưng và tạo đồng thời số liệu, bảng và hình minh hoạ. Phần tính toán dùng thư viện chuẩn Python; phần tạo hình PNG dùng Pillow. Đây là minh hoạ đặc trưng, không phải bản cài đặt hay phép tái lập đầy đủ FANCI.
+
+Từ thư mục gốc repository, chạy:
+\begin{verbatim}
+python Experiments/feature_demo.py
+\end{verbatim}
+Nếu chỉ cần tái tạo số liệu và bảng, không tạo hình:
+\begin{verbatim}
+python Experiments/feature_demo.py --no-figure
+\end{verbatim}
+
+Các tệp \path{Experiments/results/samples_features.csv} và \path{summary.json} lưu từng mẫu, đặc trưng và thống kê mô tả. Bảng và hình dùng trong báo cáo được lưu tại \path{Template/Figures/}. Tệp \path{Experiments/README.md} ghi cách sinh dữ liệu, công thức, phiên bản môi trường đã chạy, mã kiểm tra SHA-256 của CSV và giới hạn diễn giải. Để kiểm tra tính tái tạo, có thể chạy lại script và so sánh CSV với mã kiểm tra đã công bố; không dùng minh hoạ này để suy ra ACC, TPR hay FPR của FANCI.

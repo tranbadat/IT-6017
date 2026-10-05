@@ -1,56 +1,364 @@
-% Chương 4 - Phụ trách: Phạm Tuấn Anh | Báo cáo ~5-6 trang
+% Chương 4 - Phụ trách: Phạm Tuấn Anh.
+% Nguồn: Mục 5 và Phụ lục A/B, FANCI, USENIX Security 2018.
 \section{THỰC NGHIỆM VÀ KẾT QUẢ}\label{chap:thuc-nghiem}
-\canviet{Phụ trách: Phạm Tuấn Anh. Dung lượng dự kiến: 5--6 trang. Mở chương bằng 2--3 câu giới thiệu. Các số liệu dưới đây do nhóm tác giả bài báo công bố \cite{schuppen2018fanci}, cần ghi rõ nguồn khi trích bảng.}
+
+Chương này trình bày và phân tích kết quả thực nghiệm của FANCI, phương pháp đã được mô tả ở Chương~\ref{chap:fanci}. Nội dung gồm dữ liệu và thiết lập đánh giá, độ chính xác phân loại mAGD và bNXD, khả năng phát hiện tên miền từ seed hoặc DGA chưa xuất hiện trong huấn luyện, khả năng tổng quát hoá giữa các mạng, và hiệu năng xử lý. Phần cuối trình bày một thực nghiệm minh hoạ đặc trưng tên miền có thể tái tạo và thảo luận các giới hạn của kết quả.
+
+Các số liệu trong Mục~\ref{sec:du-lieu}--\ref{sec:phan-giai-thanh-cong} được tổng hợp từ Mục 5 và Phụ lục A/B của bài báo FANCI \cite{schuppen2018fanci}. Báo cáo đối chiếu và phân tích kết quả do tác giả công bố; nhóm chưa thu thập lại các bản ghi DNS hoặc tái lập mô hình, và không có dữ liệu cùng ma trận nhầm lẫn gốc để kiểm chứng độc lập. Riêng Mục~\ref{sec:thuc-nghiem-nhom} là thực nghiệm minh hoạ trên dữ liệu tổng hợp của nhóm, có mã nguồn và kết quả lưu kèm.
 
 \subsection{Dữ liệu thực nghiệm}\label{sec:du-lieu}
-\canviet{Nên tóm tắt ba nguồn dữ liệu trong một bảng (nguồn, thời gian thu thập, số lượng, vai trò).}
+
+FANCI sử dụng dữ liệu có nhãn từ ba nguồn: NXD quan sát được tại mạng RWTH Aachen, NXD từ hạ tầng DNS của Siemens và mAGD được sinh lại từ các DGA đã dịch ngược trong DGArchive. Trong các phép đánh giá phân loại, đơn vị dữ liệu là \emph{tên miền duy nhất}, còn một phản hồi NXD là toàn bộ gói tin chứa tên miền đó, theo quy ước ở Mục~\ref{sec:dns-nxd}. Một tên miền có thể xuất hiện trong nhiều phản hồi, nên số lượng tên miền và số lượng phản hồi phản ánh hai quy mô khác nhau.
+
+\begin{table}[htbp]
+\centering
+\caption{Ba nguồn dữ liệu của nghiên cứu FANCI (Mục 5.1 của \cite{schuppen2018fanci}).}
+\label{tab:c4-du-lieu}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{2.1cm}|>{\raggedright\arraybackslash}p{3.3cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Nguồn} & \textbf{Thời gian} & \textbf{Quy mô và vai trò} \\ \hline
+RWTH Aachen & 22/5--21/6/2017; 31 ngày & Khoảng 700 triệu phản hồi NXD, 98,9 GB pcap; 35,8 triệu NXD duy nhất. Nguồn dữ liệu lành tính cho các thí nghiệm ban đầu. \\ \hline
+Siemens & Tháng 9--10/2017; 61 ngày & 31,2 triệu NXD duy nhất từ châu Âu, châu Á và Mỹ. Dùng đánh giá môi trường doanh nghiệp và khả năng chuyển mô hình giữa các mạng. \\ \hline
+DGArchive & 12/2/2014--30/1/2018; 1.344 ngày có dữ liệu theo tác giả & Ban đầu 72 DGA; giữ lại 59 DGA có ít nhất 250 mAGD duy nhất. Tập được chọn có 49.738.973 mAGD duy nhất, cung cấp nhãn độc hại. \\ \hline
+\end{tabularx}
+\end{table}
 
 \subsubsection{Dữ liệu lành tính từ mạng RWTH Aachen}
-\canviet{Ghi liên tục 31 ngày (22/5--21/6/2017) tại DNS resolver trung tâm; khoảng 700 triệu phản hồi NXD, 35,8 triệu NXD duy nhất.}
+
+Máy chủ phân giải DNS trung tâm của RWTH Aachen phục vụ các viện nghiên cứu, mạng hành chính, ký túc xá, bệnh viện đại học và hệ thống eduroam. Phần lớn thiết bị sử dụng các máy chủ phân giải trung tâm, nên dữ liệu thu thập bao quát nhiều loại thiết bị và phần mềm. Trong 31 ngày, tác giả ghi nhận trung bình khoảng 22,6 triệu phản hồi NXD mỗi ngày; toàn bộ tập dữ liệu chứa 35,8 triệu tên miền duy nhất \cite{schuppen2018fanci}.
+
+Việc thu thập bNXD từ mạng thực đưa các trường hợp lỗi gõ phím, cấu hình sai và truy vấn sinh tự động bởi phần mềm hợp pháp vào phép đánh giá. Đây là những trường hợp khó đã trình bày ở Mục~\ref{sec:phan-loai-nxd}, mà tập tên miền phổ biến đã đăng ký không phản ánh đầy đủ. Tuy nhiên, NXD quan sát được không mặc nhiên là lành tính. Tác giả làm sạch dữ liệu bằng cách loại các tên miền trùng với mAGD đã biết trong DGArchive; bước này giảm nguy cơ gán nhãn lành tính cho mAGD, nhưng vẫn có thể bỏ qua tên miền do DGA chưa biết sinh ra.
 
 \subsubsection{Dữ liệu lành tính từ mạng Siemens}
-\canviet{61 ngày (tháng 9--10/2017), từ các DNS server ở châu Âu, châu Á và Mỹ; 31,2 triệu NXD duy nhất.}
+
+Dữ liệu Siemens được thu từ các máy chủ DNS trung tâm ở ba khu vực địa lý, trong hai tháng liên tiếp. Khác với RWTH, tác giả chỉ nhận chuỗi NXD, không nhận toàn bộ gói phản hồi. Sự khác biệt này phù hợp với thiết kế của module phân loại: không cần IP nguồn, IP đích hay thời điểm để trích xuất đặc trưng và dự đoán nhãn. Tập Siemens cũng được đối chiếu với DGArchive để loại mAGD đã biết trước khi tạo các tập đánh giá \cite{schuppen2018fanci}.
+
+Hai nguồn bNXD cho phép đánh giá cả hiệu quả phân loại trong cùng một mạng và khả năng tổng quát hoá khi mạng kiểm tra khác mạng huấn luyện. Sự đa dạng về địa lý và thời gian làm tăng độ bao quát của dữ liệu, dù kết quả vẫn chỉ đại diện cho các môi trường và giai đoạn đã khảo sát.
 
 \subsubsection{Dữ liệu độc hại từ DGArchive}
-\canviet{72 DGA, giữ lại 59 DGA có từ 250 mAGD duy nhất trở lên; tổng 49.738.973 mAGD duy nhất.}
+
+DGArchive cung cấp mAGD được sinh lại từ các DGA đã dịch ngược với seed đã biết, như đã trình bày ở Mục~\ref{sec:khao-sat}. Nhãn độc hại vì vậy có căn cứ từ thuật toán của mã độc. Tác giả loại các DGA có dưới 250 tên miền duy nhất để có đủ mẫu cho huấn luyện và đánh giá; 59 DGA còn lại có từ 251 đến 13.488.000 mAGD mỗi DGA~\cite{schuppen2018fanci}.
+
+Sự chênh lệch quy mô giữa các họ là lý do không thể lấy ngẫu nhiên toàn bộ dữ liệu rồi coi mọi DGA có mức đại diện như nhau. Khi xây dựng tập nhiều DGA, tác giả cố gắng lấy số mẫu tương đương giữa các họ, đồng thời dùng toàn bộ mẫu của những họ không đủ số lượng mục tiêu. Quy tắc này hạn chế việc các DGA có hàng triệu tên miền chi phối kết quả; việc loại 13 họ ít mẫu cũng giới hạn phạm vi mà kết quả thực nghiệm có thể đại diện.
 
 \subsection{Thiết lập thực nghiệm và độ đo đánh giá}\label{sec:thiet-lap}
-\canviet{Tập dữ liệu cân bằng giữa bNXD và mAGD; kiểm định chéo 5-fold và LOGO. Độ đo ACC, TPR, TNR, FNR, FPR, báo cáo trung bình, độ lệch chuẩn, min, trung vị, max.}
+
+\subsubsection{Lấy mẫu, cân bằng lớp và chọn siêu tham số}
+
+Tác giả tạo các tập con bằng lấy mẫu ngẫu nhiên theo phân bố đều. Mỗi tập có số bNXD bằng số mAGD; kích thước tập là tổng số mẫu của hai lớp. Phần bNXD được lấy mẫu mới cho từng tập, còn phần mAGD được chọn từ một DGA hoặc nhiều DGA tuỳ mục tiêu thực nghiệm. Chẳng hạn, một tập cân bằng có 92.102 mẫu chứa 46.051 mẫu ở mỗi lớp.
+
+Siêu tham số cho hai kịch bản \emph{một DGA} và \emph{nhiều DGA} được chọn bằng tìm kiếm lưới trên các tập độc lập với tập đánh giá, rồi được cố định cho các thí nghiệm tiếp theo. Cấu hình nhiều DGA đã nêu ở Bảng~\ref{tab:sieu-tham-so}: RF dùng 785 cây, tiêu chí Gini và 18 đặc trưng xét tại mỗi nút; SVM dùng kernel RBF với $C=0{,}9160$ và $\gamma=0{,}0198$. Các phép đánh giá phân loại được thực hiện trên cụm tính toán RWTH; phép đo thời gian ở Mục~\ref{sec:toc-do} sử dụng một máy tính riêng \cite{schuppen2018fanci}.
+
+\subsubsection{Kiểm định chéo và kiểm tra khả năng tổng quát hoá}
+
+Trong \textbf{kiểm định chéo 5-fold}, một tập được chia thành năm phần: bốn phần dùng huấn luyện và một phần dùng kiểm tra; lần lượt đổi phần kiểm tra để mọi mẫu đều được dự đoán khi không nằm trong phần huấn luyện của lượt đó. Theo mô tả của tác giả, các độ đo của năm lượt kiểm tra được lấy trung bình cho mỗi lần kiểm định chéo. Với các thí nghiệm DGA riêng lẻ và DGA hỗn hợp, tác giả lặp toàn bộ quy trình năm lần bằng các cách chia ngẫu nhiên mới. Lặp lại giúp quan sát độ ổn định theo cách chia dữ liệu; các lượt lặp không tạo ra năm kho dữ liệu thực độc lập.
+
+Trong \textbf{LOGO (Leave-One-Group-Out)}, dữ liệu được chia thành các nhóm theo seed hoặc DGA; mỗi lượt giữ lại một nhóm để kiểm tra và dùng các nhóm còn lại để huấn luyện. Giữ lại một seed kiểm tra khả năng phát hiện tên miền từ seed mới của DGA đã biết; giữ lại một DGA kiểm tra khả năng phát hiện tên miền từ DGA không xuất hiện trong huấn luyện. Hai kịch bản này khó hơn việc dự đoán thêm tên miền từ các DGA và seed đã có mẫu huấn luyện. Bài báo mô tả cách giữ lại nhóm mAGD, nhưng chưa trình bày đầy đủ cách phân bổ bNXD vào từng nhóm LOGO.
+
+Kiểm tra \textbf{giữa các mạng} dùng quy trình khác: huấn luyện bằng bNXD của mạng thứ nhất, kiểm tra bằng bNXD của mạng thứ hai, cùng nguồn mAGD từ DGArchive. Phép đánh giá này kiểm tra sự thay đổi môi trường lành tính; không đồng thời chứng minh khả năng nhận diện các họ DGA hoàn toàn mới.
+
+\subsubsection{Ma trận nhầm lẫn và các độ đo}
+
+Quy ước mAGD là lớp dương, bNXD là lớp âm. TP là mAGD được phát hiện đúng; FN là mAGD bị bỏ sót; TN là bNXD được nhận diện đúng; FP là bNXD bị báo nhầm thành độc hại.
+
+\begin{table}[H]
+\centering
+\caption{Ma trận nhầm lẫn cho bài toán phân loại mAGD/bNXD.}
+\label{tab:c4-confusion}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Nhãn thực tế} & \textbf{Dự đoán mAGD} & \textbf{Dự đoán bNXD} \\ \hline
+mAGD & TP: phát hiện đúng & FN: bỏ sót \\ \hline
+bNXD & FP: báo động nhầm & TN: nhận diện đúng \\ \hline
+\end{tabularx}
+\end{table}
+
+Đặt $N=TP+TN+FP+FN$, các độ đo được định nghĩa bởi:
+\begin{equation}\label{eq:c4-acc}
+\mathrm{ACC}=\frac{TP+TN}{N}.
+\end{equation}
+\begin{equation}\label{eq:c4-rates}
+\begin{aligned}
+\mathrm{TPR}&=\frac{TP}{TP+FN}, & \mathrm{FNR}&=\frac{FN}{TP+FN},\\
+\mathrm{TNR}&=\frac{TN}{TN+FP}, & \mathrm{FPR}&=\frac{FP}{TN+FP}.
+\end{aligned}
+\end{equation}
+
+Độ chính xác (ACC) là tỷ lệ dự đoán đúng trên cả hai lớp; tỷ lệ dương tính thật (TPR) phản ánh khả năng phát hiện mAGD, còn tỷ lệ dương tính giả (FPR) là phần bNXD bị báo nhầm thành độc hại. Với cùng một ma trận nhầm lẫn và mẫu số khác không, $\mathrm{TPR}+\mathrm{FNR}=1$ và $\mathrm{TNR}+\mathrm{FPR}=1$. Khi hai lớp có cùng số mẫu trong tập kiểm tra đang xét, ACC bằng trung bình của TPR và TNR. Điều kiện cân bằng của tập ban đầu không bảo đảm mọi lượt LOGO đều cân bằng.
+
+Bài báo trình bày trung bình, độ lệch chuẩn, cực tiểu, trung vị và cực đại của các độ đo. Độ lệch chuẩn phản ánh biến thiên của kết quả được tổng hợp theo quy trình đánh giá, thay vì khoảng tin cậy cho môi trường tương lai. Cách tổng hợp và trọng số ở mọi bước chưa được mô tả đầy đủ, đặc biệt trong LOGO.
+
+Các bảng kết quả sử dụng thang $[0,1]$ như bài báo, trong đó $0{,}99759$ tương ứng $99{,}759\%$. Một số giá trị FNR trong Bảng 5, 7, 14 và 16 của bài báo không thoả quan hệ $\mathrm{FNR}=1-\mathrm{TPR}$, với chênh lệch vượt sai số làm tròn. Do thiếu ma trận nhầm lẫn gốc để xác định nguyên nhân, báo cáo giữ nguyên ACC, TPR và FPR theo công bố và không chép lại các giá trị FNR bất nhất. Sự không nhất quán này thuộc về số liệu công bố, không làm thay đổi định nghĩa FNR.
 
 \subsection{Độ chính xác phân loại}\label{sec:do-chinh-xac}
 
+Bảng~\ref{tab:c4-accuracy} tổng hợp bốn kịch bản chính. Trong đó $\overline{\mathrm{ACC}}$ là ACC trung bình và $\sigma_{\mathrm{ACC}}$ là độ lệch chuẩn; TPR và FPR cũng là các giá trị trung bình. Các hàng RF lấy từ phần chính của bài báo, các hàng SVM lấy từ Phụ lục A.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả RF và SVM (Bảng 4--7, 13--16 của \cite{schuppen2018fanci}; các độ đo ở thang $[0,1]$).}
+\label{tab:c4-accuracy}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|c|c|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Kịch bản} & \textbf{Mô hình} & $\overline{\mathrm{ACC}}$ & $\sigma_{\mathrm{ACC}}$ & \textbf{TPR} & \textbf{FPR} & \textbf{Bảng gốc} \\ \hline
+DGA riêng lẻ & RF & 0,99936 & 0,00190 & 0,99989 & 0,00117 & 4 \\ \hline
+DGA riêng lẻ & SVM & 0,99930 & 0,00190 & 0,99983 & 0,00122 & 13 \\ \hline
+Seed chưa biết & RF & 0,95319 & 0,12499 & 0,90689 & 0,00053 & 5 \\ \hline
+Seed chưa biết & SVM & 0,98315 & 0,06166 & 0,96713 & 0,00084 & 14 \\ \hline
+Nhiều DGA đã biết & RF & 0,99759 & 0,00009 & 0,99764 & 0,00247 & 6 \\ \hline
+Nhiều DGA đã biết & SVM & 0,99464 & 0,00017 & 0,99148 & 0,00221 & 15 \\ \hline
+DGA chưa biết & RF & 0,98073 & 0,00034 & 0,96389 & 0,00244 & 7 \\ \hline
+DGA chưa biết & SVM & 0,97972 & 0,00041 & 0,96195 & 0,00254 & 16 \\ \hline
+\end{tabularx}
+\end{table}
+
 \subsubsection{Phát hiện từng DGA riêng lẻ}
-\canviet{RF đạt ACC trung bình 0,99936; 6/59 DGA đạt 100\%; ngoại lệ duy nhất là Bobax (ACC 0,986).}
 
-\subsubsection{Phát hiện DGA với seed chưa biết}
-\canviet{LOGO theo seed (30 DGA, 550 seed): RF đạt ACC 0,95319, SVM đạt 0,98315 --- trường hợp duy nhất SVM tốt hơn RF.}
+Ở kịch bản đầu tiên, một bộ phân loại chuyên biệt được huấn luyện để phân biệt mAGD của một DGA với bNXD. Với mỗi DGA trong số 59 DGA, tác giả tạo năm tập cân bằng, mỗi tập có tối đa 100.000 mẫu. Kích thước tập được giảm nếu DGA có dưới 50.000 mAGD duy nhất. Tổng cộng có 295 tập, mỗi tập được đánh giá bằng năm lần kiểm định chéo 5-fold \cite{schuppen2018fanci}.
 
-\subsubsection{Phát hiện hỗn hợp nhiều DGA}
-\canviet{20 tập, mỗi tập 92.102 mẫu, chứa mAGD của cả 59 DGA: RF đạt ACC 0,99759.}
+RF đạt ACC trung bình $0{,}99936$ ($99{,}936\%$), với độ lệch chuẩn $0{,}00190$. Sáu DGA đạt ACC $100\%$ trong phép đánh giá này: Bamital, Blackhole, Dyre, Sisron, Tofsee và UD2. Giá trị thấp nhất $0{,}98600$ thuộc Bobax. SVM có ACC trung bình gần tương đương, $0{,}99930$, nhưng cực tiểu thấp hơn, $0{,}98133$.
 
-\subsubsection{Phát hiện DGA chưa biết}
-\canviet{LOGO theo DGA: RF đạt ACC 0,98073; phát hiện được 55/59 DGA không có trong tập huấn luyện.}
+Kết quả cho thấy bộ đặc trưng phân biệt tốt mAGD với bNXD khi DGA cần phát hiện đã được biết và có mẫu huấn luyện phù hợp. Mức ACC xấp xỉ $99{,}9\%$ vì vậy phản ánh hiệu quả của bộ phân loại chuyên biệt trong kịch bản này; khả năng phát hiện tên miền từ DGA chưa xuất hiện trong huấn luyện được đánh giá riêng ở Mục~\ref{sec:do-chinh-xac}.
+
+\subsubsection{Phát hiện tên miền từ seed chưa biết}
+
+Seed mới có thể thay đổi phân bố ký tự hoặc cấu trúc tên miền ngay cả khi thuật toán sinh không đổi. Tác giả dùng LOGO theo seed: huấn luyện bằng các seed còn lại của một DGA rồi kiểm tra trên seed bị giữ lại. Chỉ 30 DGA có ít nhất hai seed được đưa vào thí nghiệm, với tổng 550 seed. Năm tập mỗi DGA tạo thành 150 tập, tối đa 100.000 mẫu mỗi tập; tổng số lượt giữ lại seed là $5\times550=2.750$ \cite{schuppen2018fanci}.
+
+ACC trung bình của RF giảm xuống $0{,}95319$, độ lệch chuẩn tăng lên $0{,}12499$; cực tiểu chỉ $0{,}49900$. Trong khi đó, trung vị vẫn đạt $0{,}99965$, và tác giả cho biết 75\% kết quả có ACC trên $0{,}98193$. Theo tác giả, các kết quả ACC dưới 98\% tập trung ở sáu DGA; những ngoại lệ này làm giảm giá trị trung bình. Chỉ nhìn vào trung bình sẽ che khuất sự khác biệt lớn giữa các nhóm seed.
+
+Đây là kịch bản duy nhất trong các thí nghiệm phân loại được khảo sát mà SVM có ACC trung bình cao hơn RF: $0{,}98315$ so với $0{,}95319$, chênh khoảng $2{,}996$ điểm phần trăm. Độ lệch chuẩn của SVM nhỏ hơn, $0{,}06166$, nhưng cực tiểu $0{,}49850$ cho thấy vẫn có trường hợp khó. SVM chịu ảnh hưởng bởi cùng các DGA ngoại lệ, song ít bỏ sót toàn bộ các seed mới hơn RF. Vì vậy không thể kết luận RF luôn tốt hơn SVM trong mọi điều kiện.
+
+\subsubsection{Phát hiện hỗn hợp nhiều DGA đã biết}
+
+Kịch bản này gần với mục tiêu vận hành một bộ phân loại chung: mô hình học từ nhiều DGA rồi dự đoán các mẫu khác thuộc những họ đã biết. Tác giả tạo 20 tập với kích thước mục tiêu 100.000 mẫu, chia đều hai lớp và cố gắng lấy khoảng $50.000/59\approx847$ mAGD mỗi DGA. Những họ có ít hơn số mẫu mục tiêu được dùng toàn bộ; sau điều chỉnh, mỗi tập thực tế có 92.102 mẫu. Mỗi tập được đánh giá bằng năm lần kiểm định chéo 5-fold \cite{schuppen2018fanci}.
+
+RF đạt ACC trung bình $0{,}99759$, dao động từ $0{,}99745$ đến $0{,}99776$, với độ lệch chuẩn chỉ $0{,}00009$. TPR $0{,}99764$ và FPR $0{,}00247$ cho thấy mô hình phát hiện phần lớn mAGD, đồng thời khoảng $0{,}247\%$ bNXD bị báo nhầm trong phép đánh giá này. SVM có FPR thấp hơn một chút, $0{,}00221$, nhưng TPR cũng thấp hơn, $0{,}99148$, nên ACC trung bình giảm xuống $0{,}99464$.
+
+Trong kịch bản hỗn hợp, RF đạt ACC và TPR cao hơn SVM, dù FPR cũng cao hơn. Mức ACC $99{,}759\%$ phản ánh hiệu quả của cấu hình FANCI dùng một bộ phân loại chung cho nhiều DGA, còn $99{,}936\%$ là kết quả của các bộ phân loại chuyên biệt ở kịch bản trước.
+
+\subsubsection{Phát hiện tên miền từ DGA chưa biết}
+
+Tác giả dùng lại 20 tập hỗn hợp và áp dụng LOGO theo DGA. Ở mỗi lượt, mAGD của một họ được giữ lại để kiểm tra, còn mô hình được huấn luyện từ các họ còn lại. Với 59 họ, mỗi tập có 59 lượt, tổng cộng $20\times59=1.180$ lượt \cite{schuppen2018fanci}.
+
+RF đạt ACC trung bình $0{,}98073$, độ lệch chuẩn $0{,}00034$; SVM đạt $0{,}97972$. TPR của RF là $0{,}96389$, thấp hơn kịch bản các họ đã biết. Theo tác giả, 55/59 DGA bị giữ lại có chất lượng phát hiện tương đương thí nghiệm trước. Con số 55/59 mô tả các họ trong DGArchive được \emph{giả lập là chưa biết đối với mô hình}; không phải 55 họ mã độc mới được phát hiện ngoài thực tế.
+
+Kết quả hỗ trợ khả năng tổng quát hoá của mô hình sang một số DGA chưa xuất hiện trong huấn luyện, trong phạm vi dữ liệu và quy trình LOGO đã xét. Bốn DGA có kết quả thấp hơn và mức TPR giảm cho thấy khả năng này vẫn có giới hạn. Độ lệch chuẩn $0{,}00034$ là thống kê tổng hợp do tác giả công bố, chưa thể xem là mức biến thiên trực tiếp giữa 59 DGA hoặc 1.180 lượt LOGO. Bài báo không nêu tên hoặc cơ chế sinh của bốn DGA ngoại lệ. Mục tiêu của LOGO ở đây là phân loại tên miền thành hai lớp lành tính và độc hại, thay vì xác định tên DGA đã sinh ra tên miền đó.
 
 \subsubsection{Lựa chọn bộ phân loại}
-\canviet{Một RF duy nhất huấn luyện trên tất cả DGA đã biết tốt hơn mọi tổ hợp bộ phân loại đã thử (and/or, bỏ phiếu ngưỡng, bỏ phiếu đa số, kết hợp RF và SVM).}
+
+Ngoài các bộ phân loại riêng lẻ, tác giả thử kết hợp các bộ phân loại chuyên biệt bằng phép logic \textit{and}, \textit{or}, bỏ phiếu theo ngưỡng, bỏ phiếu đa số và tổ hợp RF/SVM. Một bộ phân loại RF duy nhất được huấn luyện trên mAGD của tất cả DGA đã biết cho kết quả tổng thể tốt hơn các tổ hợp đã thử. Vì vậy, tác giả chọn cấu hình này cho FANCI \cite{schuppen2018fanci}.
+
+Lựa chọn RF phản ánh kết quả trên dữ liệu và quy trình đã khảo sát. SVM vẫn có lợi thế về ACC trung bình trong kịch bản seed chưa biết, còn bài báo chưa cung cấp đầy đủ kết quả của mọi tổ hợp theo từng tiêu chí. Một RF chung cũng thuận lợi về vận hành vì chỉ cần duy trì một mô hình; ưu thế này không đồng nghĩa FANCI tốt hơn mọi mô hình tổ hợp hoặc thuật toán khác.
 
 \subsection{Khả năng tổng quát hoá giữa các mạng}\label{sec:tong-quat-hoa}
-\canviet{Huấn luyện và dự đoán trên Siemens: ACC 0,99699; huấn luyện RWTH, dự đoán Siemens: 0,99534; huấn luyện Siemens, dự đoán RWTH: 0,99785.}
+
+Các thí nghiệm ban đầu dùng bNXD RWTH. Tác giả lặp kịch bản nhiều DGA với bNXD Siemens, sau đó thực hiện hai chiều chuyển mô hình giữa RWTH và Siemens. Nguồn mAGD vẫn là DGArchive; thay đổi chính là môi trường sinh bNXD.
+
+\begin{table}[H]
+\centering
+\caption{Tổng quát hoá theo nguồn bNXD (Bảng 6, 8--10, 15, 17--19 của \cite{schuppen2018fanci}; thang $[0,1]$).}
+\label{tab:c4-generalization}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|c|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Huấn luyện $\rightarrow$ kiểm tra} & \textbf{Mô hình} & \textbf{ACC} & \textbf{TPR} & \textbf{FPR} & \textbf{Bảng gốc} \\ \hline
+RWTH $\rightarrow$ RWTH & RF & 0,99759 & 0,99764 & 0,00247 & 6 \\ \hline
+RWTH $\rightarrow$ RWTH & SVM & 0,99464 & 0,99148 & 0,00221 & 15 \\ \hline
+Siemens $\rightarrow$ Siemens & RF & 0,99699 & 0,99815 & 0,00418 & 8 \\ \hline
+Siemens $\rightarrow$ Siemens & SVM & 0,99394 & 0,99331 & 0,00544 & 17 \\ \hline
+RWTH $\rightarrow$ Siemens & RF & 0,99534 & 0,99937 & 0,00868 & 9 \\ \hline
+RWTH $\rightarrow$ Siemens & SVM & 0,99180 & 0,99252 & 0,00892 & 18 \\ \hline
+Siemens $\rightarrow$ RWTH & RF & 0,99785 & 0,99946 & 0,00376 & 10 \\ \hline
+Siemens $\rightarrow$ RWTH & SVM & 0,99448 & 0,99412 & 0,00515 & 19 \\ \hline
+\end{tabularx}
+\end{table}
+
+Khi huấn luyện và kiểm tra trong cùng mạng Siemens, RF đạt ACC $0{,}99699$ với độ lệch chuẩn $0{,}00015$. Tác giả dùng 20 tập và năm lần kiểm định chéo 5-fold. Chú thích Bảng 8 của bài báo ghi mỗi tập có 100.000 mẫu, khác với 92.102 mẫu của thí nghiệm RWTH.
+
+Khi huấn luyện ở một mạng và kiểm tra ở mạng còn lại, mỗi nguồn bNXD có 20 tập. Mô hình được huấn luyện trên từng tập của một nguồn rồi kiểm tra trên cả 20 tập của nguồn kia, tạo $20\times20=400$ lượt cho mỗi chiều. Quy trình này khác với kiểm định chéo 5-fold trong cùng một tập.
+
+RF được huấn luyện ở RWTH rồi kiểm tra ở Siemens đạt ACC $0{,}99534$, thấp hơn kết quả huấn luyện và kiểm tra trong cùng mạng Siemens $0{,}00165$ trên thang $[0,1]$, tương ứng \emph{0,165 điểm phần trăm}. FPR tăng từ $0{,}00418$ lên $0{,}00868$, trong khi TPR tăng từ $0{,}99815$ lên $0{,}99937$. Ở chiều ngược lại, ACC $0{,}99785$ cao hơn mức $0{,}99759$ khi huấn luyện và kiểm tra trong cùng mạng RWTH khoảng \emph{0,026 điểm phần trăm}; FPR tăng nhưng tỷ lệ bỏ sót giảm.
+
+Mô hình duy trì ACC cao khi áp dụng giữa hai mạng đã khảo sát, hỗ trợ kịch bản cung cấp phân loại dưới dạng dịch vụ đã trình bày ở Chương~\ref{chap:fanci}. Tuy vậy, FPR tăng cho thấy việc triển khai vẫn cần đánh giá dữ liệu của mạng đích và điều chỉnh bước lọc cảnh báo. ACC cao chưa phản ánh đầy đủ số lượng dương tính giả trong vận hành. Phép đo này chủ yếu kiểm tra sự thay đổi nguồn bNXD, chưa đánh giá đồng thời mạng mới và tập DGA hoàn toàn mới.
 
 \subsection{Giảm dương tính giả bằng danh sách trắng}\label{sec:giam-fp}
-\canviet{Lọc bằng Alexa top $10^2$, $10^4$, $10^6$ kết hợp danh sách trắng cục bộ: FP của RWTH giảm 75,53--89,88\%, của Siemens giảm 47,85--77,74\% (Bảng 11 của bài báo).}
+
+Module tình báo thực hiện bước lọc bằng danh sách trắng toàn cục và cục bộ để giảm số dương tính giả, như đã mô tả ở Mục~\ref{sec:kien-truc}. Trong nghiên cứu năm 2018, danh sách toàn cục gồm $X$ tên miền phổ biến nhất theo Alexa, còn danh sách cục bộ phản ánh các tên miền hợp pháp thường gặp trong mạng. Một NXD được loại khỏi danh sách dương tính nếu thuộc tên miền có trong danh sách trắng. Các hậu tố công khai như \texttt{dyndns.org} được loại khỏi danh sách toàn cục theo Public Suffix List, vì việc bỏ qua toàn bộ tên miền bên dưới chúng có thể bỏ sót mAGD \cite{schuppen2018fanci}.
+
+Thí nghiệm sử dụng tập các bNXD duy nhất bị phân loại nhầm thành độc hại trong những phép đánh giá trước, gồm 6.522 tên miền ở RWTH và 11.431 tên miền ở Siemens. Các số đếm này được tổng hợp trên nhiều phép đánh giá, thay vì một lượt kiểm định chéo hoặc toàn bộ phản hồi NXD. Bảng~\ref{tab:c4-whitelist} trình bày tỷ lệ giảm và số FP còn lại; tỷ lệ giảm FP ở đây khác với FPR đã định nghĩa ở Mục~\ref{sec:thiet-lap}.
+
+\begin{table}[H]
+\centering
+\caption{Giảm FP bằng Alexa riêng và Alexa kết hợp danh sách cục bộ (Bảng 11 của \cite{schuppen2018fanci}).}
+\label{tab:c4-whitelist}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|c|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Mạng (FP ban đầu)} & \textbf{Top $X$} & \textbf{Alexa: giảm} & \textbf{Còn lại} & \textbf{Kết hợp: giảm} & \textbf{Còn lại} \\ \hline
+RWTH (6.522) & $10^2$ & 0,08\% & 6.517 & 75,53\% & 1.596 \\ \hline
+RWTH (6.522) & $10^4$ & 71,79\% & 1.840 & 77,69\% & 1.455 \\ \hline
+RWTH (6.522) & $10^6$ & 86,49\% & 881 & 89,88\% & 660 \\ \hline
+Siemens (11.431) & $10^2$ & 0,31\% & 11.395 & 47,85\% & 5.961 \\ \hline
+Siemens (11.431) & $10^4$ & 7,52\% & 10.571 & 53,12\% & 5.359 \\ \hline
+Siemens (11.431) & $10^6$ & 74,18\% & 2.952 & 77,74\% & 2.544 \\ \hline
+\end{tabularx}
+\end{table}
+
+Với $FP_0$ là số FP trước lọc và $FP_1$ là số còn lại, tỷ lệ giảm bằng $(FP_0-FP_1)/FP_0$. RWTH với top $10^6$ và danh sách cục bộ giảm từ 6.522 xuống 660 FP, tương ứng $89{,}88\%$. Các mức giảm kết hợp $75{,}53$--$89{,}88\%$ ở RWTH và $47{,}85$--$77{,}74\%$ ở Siemens đều lấy cùng mốc FP ban đầu của từng mạng.
+
+Danh sách trắng cục bộ có vai trò đáng kể: riêng 100 tên miền phổ biến nhất theo Alexa chỉ giảm $0{,}08\%$ FP ở RWTH và $0{,}31\%$ ở Siemens, trong khi kết hợp với danh sách cục bộ cho mức giảm cao hơn nhiều. Kết quả này phản ánh hiệu quả của hai bước lọc kết hợp. Bài báo chưa đánh giá riêng danh sách cục bộ, nên đóng góp độc lập của từng bước chưa được xác định đầy đủ.
+
+Danh sách trắng giảm số lượng cảnh báo nhưng phụ thuộc vào giả định về độ tin cậy của các tên miền được bỏ qua. Thí nghiệm chưa định lượng nguy cơ bỏ sót mAGD khi một tên miền trong danh sách bị lạm dụng hoặc xâm nhập. Alexa phản ánh cấu hình được dùng trong nghiên cứu; việc triển khai ở môi trường khác vẫn cần lựa chọn và đánh giá nguồn danh sách trắng phù hợp.
 
 \subsection{Thử nghiệm thực tế tại mạng RWTH Aachen}\label{sec:thuc-te}
-\canviet{Dữ liệu 13/10--12/11/2017; 22.755 NXD dương tính duy nhất; 405 mAGD chưa biết thuộc 10 nhóm (DGA mới hoặc seed mới), trong đó ít nhất 4 DGA hoàn toàn mới; FPR trong trường hợp xấu nhất khoảng 0,00064.}
+
+\subsubsection{Thiết lập thử nghiệm}
+
+Để đánh giá trên lưu lượng thực, tác giả sử dụng một bản ghi DNS mới tại RWTH Aachen trong 31 ngày, từ 13/10 đến 12/11/2017. Bản ghi này có khoảng 700 triệu phản hồi NXD và 35 triệu tên miền duy nhất, thuộc giai đoạn khác với dữ liệu bNXD thu trong tháng 5--6 để huấn luyện. FANCI sử dụng một bộ phân loại RF được huấn luyện trên 92.102 mẫu cân bằng, gồm mAGD của 59 DGA và bNXD RWTH. Sau phân loại, module tình báo lọc các mẫu dương tính bằng danh sách 1.000.000 tên miền phổ biến nhất theo Alexa \cite{schuppen2018fanci}.
+
+Phép đánh giá được thực hiện trên bản ghi DNS thực. Khả năng đáp ứng khi xử lý trực tuyến được xem xét qua phép đo thời gian ở Mục~\ref{sec:toc-do}; độ trễ của toàn bộ hệ thống trong vận hành liên tục chưa được công bố. Giới hạn về thứ tự thời gian của dữ liệu huấn luyện và kiểm tra được thảo luận ở Mục~\ref{sec:c4-tieu-ket}.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả thử nghiệm thực tế (Mục 5.3 của \cite{schuppen2018fanci}).}
+\label{tab:c4-realworld}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{4.8cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Đại lượng} & \textbf{Kết quả và cách hiểu} \\ \hline
+NXD dương tính sau lọc & 22.755 tên miền duy nhất, khoảng $0{,}065\%$ của 35 triệu miền. Đây là cảnh báo cần rà soát. \\ \hline
+Phản hồi chứa các miền dương tính & 45.510 phản hồi, khoảng $0{,}0065\%$ của 700 triệu phản hồi. \\ \hline
+mAGD chưa biết được xác định & 405 miền thuộc 10 nhóm DGA mới, seed mới hoặc biến thể. \\ \hline
+DGA hoàn toàn mới & Theo nhận định của tác giả, ít nhất 4 nhóm tương ứng DGA hoàn toàn mới. \\ \hline
+mAGD đã biết & 31 miền duy nhất được nhận diện bằng DGArchive. \\ \hline
+Ước lượng FPR bảo thủ của tác giả & Khoảng $0{,}00064$, tức $0{,}064\%$; chưa được xác minh bằng nhãn đầy đủ. \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsubsection{Phát hiện các nhóm chưa biết và giới hạn xác minh}
+
+Việc rà soát bán tự động được hỗ trợ bởi các nhóm cảnh báo theo tên miền, thiết bị và thời gian, kết hợp DGArchive, tri thức chuyên môn và tìm kiếm thủ công. Qua đó, tác giả báo cáo 405 mAGD chưa biết thuộc 10 nhóm. Các tên miền này chưa được liệt kê trong DGArchive và cũng không tìm thấy qua các nguồn thông dụng tại thời điểm viết bài. Theo nhận định của tác giả, ít nhất bốn nhóm thuộc các DGA hoàn toàn mới; những nhóm còn lại có thể liên quan tới seed mới hoặc biến thể của DGA đã biết.
+
+Do khó xác định nhãn thực của mọi tên miền, tác giả xem các mẫu dương tính chưa xác minh còn lại là FP và công bố ước lượng FPR bảo thủ khoảng $0{,}00064$. Bài báo ghi tối đa 22.345 FP tiềm năng, trong khi phép trừ $22.755-405=22.350$, kể cả khi trừ thêm 31 mAGD đã biết, không cho cùng kết quả. Tỷ số 22.345 chia cho 35 triệu NXD duy nhất xấp xỉ $0{,}00064$ là phép đối chiếu của nhóm; bài báo chưa mô tả rõ mẫu số. Tổng số tên miền quan sát cũng khác với số tên miền lành tính đã được xác minh trong mẫu số $TN+FP$. Vì vậy, giá trị này là ước lượng theo công bố, với mức bằng chứng khác FPR tính trên tập kiểm tra có nhãn và chưa phải cận trên FPR được kiểm chứng.
+
+Việc thiếu nhãn đầy đủ cũng hạn chế khả năng xác định TPR và độ chuẩn xác (precision), tức tỷ lệ tên miền thực sự độc hại trong các cảnh báo dương tính. Số 405 chỉ gồm mAGD chưa biết đã được xác định, nên tỷ số $405/22.755$ không biểu diễn precision của hệ thống. Tác giả chỉ xác định được 31 mAGD đã biết trong đợt đánh giá; số lượng này còn chịu ảnh hưởng của phần mềm an ninh và danh sách đen sẵn có tại RWTH.
+
+Thử nghiệm cho thấy FANCI kết hợp với module tình báo có thể hỗ trợ tìm các nhóm mAGD chưa biết trong dữ liệu mạng thực. Việc diễn giải các nhóm vẫn cần chuyên gia rà soát, còn xác nhận nhiễm mã độc đòi hỏi thêm bằng chứng ở cấp thiết bị; bài báo chưa trình bày bước xác minh đó cho toàn bộ cảnh báo.
 
 \subsection{Tốc độ huấn luyện và phân loại}\label{sec:toc-do}
-\canviet{Huấn luyện RF trên 92.102 mẫu mất 339,71 giây (5,66 phút); phân loại 0,0025 giây mỗi mẫu (gồm cả trích xuất đặc trưng), tức khoảng 400 mẫu/giây trên một luồng. So sánh với mạng RWTH: trung bình 164, đỉnh 900 phản hồi NXD/giây.}
+
+Phép đo hiệu năng được thực hiện trên máy Dell OptiPlex 980, CPU Intel Core i7-870 ở 2,93 GHz, RAM 16 GB và hệ điều hành Ubuntu Linux 16.04. Tác giả đo thời gian huấn luyện và phân loại trên một luồng, lặp 10 lần cho mỗi tập hỗn hợp 92.102 mẫu. Thời gian đo bao gồm trích xuất đặc trưng. Bảng~\ref{tab:c4-speed} tổng hợp kết quả RF từ Mục 5.4 của bài báo \cite{schuppen2018fanci}.
+
+\begin{table}[H]
+\centering
+\caption{Hiệu năng RF và mức lưu lượng đối chiếu (Mục 5.4 của \cite{schuppen2018fanci}).}
+\label{tab:c4-speed}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{6.2cm}|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Đại lượng} & \textbf{Giá trị} \\ \hline
+Huấn luyện 92.102 mẫu & Trung bình 339,71 giây, khoảng 5,66 phút \\ \hline
+Phân loại 92.102 mẫu & Trung bình 234,76 giây \\ \hline
+Phân loại một mẫu, gồm trích đặc trưng & Khoảng 0,0025 giây theo giá trị làm tròn \\ \hline
+Thông lượng một luồng & Khoảng 400 mẫu/giây theo bài báo \\ \hline
+Lưu lượng NXD RWTH dùng đối chiếu & Trung bình 164 phản hồi/giây; đỉnh 900 phản hồi/giây \\ \hline
+\end{tabularx}
+\end{table}
+
+Từ thời gian phân loại toàn bộ tập, thông lượng, tức số mẫu xử lý trong một giây, được tính bằng:
+\begin{equation*}
+\frac{92.102}{234{,}76}\approx392{,}3\ \text{mẫu/giây}.
+\end{equation*}
+Mức 400 mẫu/giây được suy ra từ thời gian một mẫu đã làm tròn. Cả hai cách biểu diễn cho thấy chi phí phân loại thấp trên phần cứng phổ thông của thời điểm nghiên cứu. Huấn luyện vài phút cũng thuận lợi cho cập nhật mô hình bằng tập có quy mô tương đương.
+
+Thông lượng này cao hơn mức trung bình 164 phản hồi/giây được tác giả dùng để đối chiếu, nhưng thấp hơn đỉnh 900 phản hồi/giây. Theo phân tích của nhóm, nếu phải phân loại từng phản hồi khi mức đỉnh duy trì, một luồng có thể tích luỹ hàng đợi. Bộ đệm, tái sử dụng kết quả cho tên miền lặp và tăng tài nguyên là những phương án cần được đánh giá khi triển khai. Phép đo bao quát trích xuất đặc trưng và phân loại, nhưng chưa phản ánh độ trễ của toàn bộ quá trình thu thập, lưu trữ và phân tích, hoặc thời gian duy trì tải đỉnh.
+
+Ngoài ra, 700 triệu phản hồi trong 31 ngày tương ứng khoảng $700.000.000/(31\times86.400)\approx261{,}4$ phản hồi/giây, khác mức 164 được công bố ở phần hiệu năng. Bài báo chưa giải thích sự khác biệt giữa hai mức trung bình này; các số liệu vì vậy được trình bày theo ngữ cảnh công bố tương ứng.
 
 \subsection{Phát hiện trên tên miền phân giải thành công}\label{sec:phan-giai-thanh-cong}
-\canviet{Thử nghiệm sơ bộ trên tên miền phân giải thành công của Siemens: RF đạt ACC 0,94962, SVM đạt 0,93683 --- mở ra hướng xác định máy chủ C\&C.}
 
-\subsection{Thực nghiệm minh hoạ của nhóm (tuỳ chọn)}\label{sec:thuc-nghiem-nhom}
-\canviet{Người thực hiện: Phạm Tuấn Anh, Nguyễn Đồng Hoàng. Script Python trích xuất một số đặc trưng đơn giản (độ dài, tỷ lệ nguyên âm, entropy Shannon, tỷ lệ ký tự lặp) trên tập tên miền hợp lệ và mAGD mô phỏng; vẽ biểu đồ phân bố để minh hoạ khả năng phân biệt. Mã nguồn đặt ở Phụ lục~\ref{app:ma-nguon}.}
+Sau khi phát hiện thiết bị nghi nhiễm từ NXD, một hướng mở rộng là phân tích các truy vấn phân giải thành công của thiết bị để tìm địa chỉ IP ứng viên của máy chủ C\&C. Tác giả khảo sát khả năng này bằng bộ dữ liệu kết hợp tên miền phân giải thành công từ Siemens với mAGD đã biết từ DGArchive. RF và SVM được huấn luyện và kiểm tra trên bộ dữ liệu mới. Bài báo chưa xác nhận mọi mAGD trong tập đều đã đăng ký hoặc phân giải thành công, nên kết quả phản ánh khả năng phân loại chuỗi tên miền, chưa phải tỷ lệ phát hiện máy chủ C\&C đã được xác minh.
 
-\subsection{Tiểu kết chương}
-\canviet{Tóm tắt các kết quả chính, dẫn sang phần đánh giá tổng hợp ở Chương~\ref{chap:danh-gia}.}
+Thiết lập tương tự kịch bản nhiều DGA: 20 tập, mỗi tập được đánh giá bằng năm lần kiểm định chéo 5-fold, chưa bổ sung đặc trưng hoặc tối ưu riêng cho tên miền phân giải thành công. Bảng~\ref{tab:c4-resolved} tổng hợp kết quả từ Bảng 12 và 20 của bài báo \cite{schuppen2018fanci}.
+
+\begin{table}[H]
+\centering
+\caption{Đánh giá sơ bộ trên tên miền phân giải thành công (Bảng 12 và 20 của \cite{schuppen2018fanci}; thang $[0,1]$).}
+\label{tab:c4-resolved}
+\small
+\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}X|c|c|c|c|c|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Mô hình} & \textbf{ACC} & $\sigma_{\mathrm{ACC}}$ & \textbf{TPR} & \textbf{TNR} & \textbf{FPR} \\ \hline
+RF & 0,94962 & 0,00071 & 0,97387 & 0,92537 & 0,07463 \\ \hline
+SVM & 0,93683 & 0,00059 & 0,98900 & 0,88465 & 0,11535 \\ \hline
+\end{tabularx}
+\end{table}
+
+RF đạt ACC $94{,}962\%$ với FPR $7{,}463\%$; SVM có TPR cao hơn nhưng FPR lên tới $11{,}535\%$. FPR cao hơn làm tăng số lượng cảnh báo khi mở rộng sang lưu lượng phân giải thành công. Kết quả phù hợp với phạm vi ứng dụng mà bài báo đề xuất: tập trung vào thiết bị nghi nhiễm từ NXD, phân tích truy vấn thành công của thiết bị đó, rồi xác minh thêm các địa chỉ IP ứng viên. Việc chặn tự động trên toàn mạng cần thêm đánh giá về dương tính giả và bằng chứng xác nhận máy chủ C\&C.
+
+\subsection{Thực nghiệm minh hoạ của nhóm}\label{sec:thuc-nghiem-nhom}
+
+\subsubsection{Mục tiêu và thiết kế}
+
+Nhóm thực hiện một thực nghiệm minh hoạ để khảo sát sự khác biệt và phần chồng lấn của đặc trưng giữa ba nhóm chuỗi tên miền tổng hợp: đối chứng dễ đọc, ngẫu nhiên chữ cái và ghép từ. Dữ liệu được tạo có kiểm soát, không thu từ lưu lượng DNS thực và không có nhãn mã độc được xác minh. Phạm vi này giúp giải thích đặc trưng chuỗi tên miền, không nhằm tái lập bộ 21 đặc trưng, mô hình RF/SVM hoặc độ chính xác của FANCI.
+
+Ba nhóm dữ liệu được xây dựng như sau:
+\begin{itemize}
+    \item \textbf{Đối chứng dễ đọc:} ghép toàn bộ 120 cặp từ trong tích Descartes của 12 tiền tố liên quan tới học tập hoặc hệ thống và 10 hậu tố chỉ chức năng hoặc dịch vụ.
+    \item \textbf{Ngẫu nhiên chữ cái:} chọn ký tự bằng bộ sinh số giả ngẫu nhiên theo phân bố đều trên \texttt{a--z}.
+    \item \textbf{Ghép từ:} lập các cặp từ có thứ tự từ danh sách 72 từ, ghép không có dấu phân cách, loại chuỗi trùng và phân nhóm theo độ dài; sau đó xáo trộn và lấy không hoàn lại trong từng nhóm.
+\end{itemize}
+
+Mỗi nhóm có 120 mẫu, tổng cộng 360 mẫu, với seed cố định là 2018. Với mỗi mẫu đối chứng, chương trình Python tạo hai mẫu còn lại có cùng độ dài, từ 9 đến 14 ký tự. Các tên miền dùng hậu tố \texttt{.invalid} và không được gửi truy vấn DNS. Việc giữ cùng độ dài và bảng chữ cái hạn chế ảnh hưởng của hai yếu tố này khi so sánh đặc trưng giữa các nhóm.
+
+\subsubsection{Đặc trưng, kết quả và khả năng tái tạo}
+
+Chương trình tính bốn đặc trưng trên nhãn $s$ sau khi bỏ hậu tố cố định: độ dài $L=|s|$; tỷ lệ nguyên âm $r_v$ với tập \texttt{a,e,i,o,u}; entropy Shannon $H=-\sum_{c\in\mathcal{A}(s)}p_c\log_2p_c$, trong đó $\mathcal{A}(s)$ là tập ký tự phân biệt và $p_c$ là tần suất tương đối; và tỷ lệ ký tự lặp $r_r$, bằng số ký tự phân biệt xuất hiện ít nhất hai lần chia cho $|\mathcal{A}(s)|$. Ở đây $L$ là độ dài nhãn đã bỏ hậu tố, khác độ dài toàn tên miền trong đặc trưng cấu trúc của FANCI. Entropy phản ánh phân bố tần suất ký tự, không phản ánh thứ tự của chúng. Các quy tắc này được dùng cho dữ liệu minh hoạ một nhãn, thay vì toàn bộ quy trình xử lý tên miền của FANCI.
+
+\begin{table}[H]
+\centering
+\caption{Đặc trưng trên 360 mẫu tổng hợp; mỗi ô là trung bình $\pm$ độ lệch chuẩn tổng thể.}
+\label{tab:c4-minh-hoa}
+\input{Figures/Bang4_MinhHoaDacTrung.tex}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Figures/Chuong4_MinhHoaDacTrung.png}
+\caption{Phân bố entropy và quan hệ entropy--tỷ lệ nguyên âm trên dữ liệu tổng hợp. Ba nhóm có cùng phân bố độ dài; hình không biểu diễn độ chính xác phân loại.}
+\label{fig:c4-minh-hoa}
+\end{figure}
+
+Cả ba nhóm có độ dài trung bình $11{,}67$ ký tự và độ lệch chuẩn $0{,}98$. Nhóm ngẫu nhiên có tỷ lệ nguyên âm trung bình $0{,}177$, thấp hơn đối chứng $0{,}380$ và nhóm ghép từ $0{,}359$. Entropy trung bình lần lượt là $3{,}080$, $3{,}140$ và $3{,}038$ bit cho đối chứng, ngẫu nhiên và ghép từ. Chênh lệch entropy trung bình nhỏ hơn mức phân tán trong từng nhóm, nên không tạo sự tách biệt rõ ràng trong minh hoạ này.
+
+Khoảng entropy của đối chứng xấp xỉ $[2{,}557;\,3{,}459]$ bit. Khi đếm bằng hai biên chưa làm tròn được lưu trong JSON, 109/120 mẫu ngẫu nhiên và 116/120 mẫu ghép từ nằm trong khoảng đó. Các số đếm này mô tả phần chồng lấn của phân bố entropy, thay vì số lỗi phân loại hoặc TPR, vì thực nghiệm chưa xây dựng ngưỡng hay bộ phân loại. Trong phạm vi minh hoạ, entropy riêng lẻ chưa tạo được sự phân biệt rõ giữa ba nhóm; cùng độ dài vẫn có thể tương ứng với nhiều giá trị entropy và tỷ lệ nguyên âm.
+
+Mã chương trình \texttt{Experiments/feature\_demo.py}, cách chạy, dữ liệu CSV và kết quả JSON được lưu trong kho mã nguồn của nhóm, trình bày ở Phụ lục~\ref{app:ma-nguon}. Bảng và hình được tạo từ cùng dữ liệu với seed cố định. Bộ từ được chọn có chủ đích và mẫu chỉ gồm chữ cái trong một nhãn; vì vậy, kết quả chỉ phản ánh thiết kế tổng hợp này. Các nhóm không tương ứng với bNXD đã xác minh hay mAGD thu từ mã độc, nên thực nghiệm không cung cấp ACC, TPR hoặc FPR của FANCI.
+
+\subsection{Giới hạn của đánh giá và tiểu kết chương}\label{sec:c4-tieu-ket}
+
+Các thí nghiệm đánh giá FANCI theo DGA đã biết, seed và DGA chưa biết, khả năng áp dụng giữa các mạng và bản ghi DNS thực. Kết quả được xem xét trong phạm vi dữ liệu, tỷ lệ lớp và điều kiện vận hành.
+
+Thứ nhất, bNXD được thu trong năm 2017 và kho mAGD thuộc giai đoạn 2014--2018, nên kết quả phản ánh dữ liệu lịch sử. Bước làm sạch chỉ loại mAGD đã biết. Các tập lấy mẫu cùng kho có thể chồng lấn, đặc biệt với DGA ít dữ liệu được dùng toàn bộ mẫu trong nhiều tập hỗn hợp. Hai mạng cùng sử dụng kho mAGD, nên phép đánh giá giữa các mạng chủ yếu kiểm tra sự thay đổi nguồn bNXD, chưa kiểm tra tập mAGD độc lập hoàn toàn.
+
+Kho DGArchive bao phủ tới 30/1/2018, sau giai đoạn kiểm tra thực tế kết thúc ngày 12/11/2017. Bài báo chưa xác định thời điểm chốt tập mAGD huấn luyện, nên chưa thể khẳng định toàn bộ dữ liệu huấn luyện có trước giai đoạn kiểm tra. Thiếu thông tin này không tự chứng minh có rò rỉ dữ liệu.
+
+Thứ hai, tập đánh giá cân bằng không phản ánh tỷ lệ mAGD thường gặp trong vận hành. Với tỷ lệ mAGD là $\pi$, độ chuẩn xác được tính theo TPR và FPR bằng
+\begin{equation}\label{eq:c4-precision}
+\mathrm{Precision}=\frac{\pi\,\mathrm{TPR}}{\pi\,\mathrm{TPR}+(1-\pi)\,\mathrm{FPR}}.
+\end{equation}
+Trong ví dụ giả định do nhóm tính, nếu $\pi=0{,}001$ và giữ nguyên TPR $0{,}99764$, FPR $0{,}00247$ của RF nhiều DGA, precision đạt khoảng $28{,}8\%$. Đây là phép tính theo tỷ lệ lớp giả định, không phải số đo triển khai FANCI. Ví dụ cho thấy FPR nhỏ vẫn có thể tạo nhiều báo động nhầm khi lớp độc hại hiếm, qua đó làm rõ vai trò của hậu xử lý và xác minh cảnh báo.
+
+Thứ ba, đánh giá vận hành còn cần đo độ trễ khi tải cao, thời gian duy trì tải đỉnh và xác định nhãn thực của cảnh báo. Thực nghiệm tổng hợp của nhóm chỉ hỗ trợ giải thích đặc trưng, chưa đo hiệu quả phát hiện trên lưu lượng DNS thực.
+
+Chương này đã trình bày dữ liệu, thiết lập và kết quả đánh giá FANCI. Theo công bố, RF chung đạt ACC $99{,}759\%$ trên hỗn hợp DGA đã biết, $98{,}073\%$ khi giữ lại từng DGA và trên $99{,}5\%$ trong hai chiều áp dụng giữa các mạng. Tác giả báo cáo 405 mAGD chưa biết thuộc 10 nhóm và chi phí phân loại thấp trên một luồng. Kết quả hỗ trợ giá trị của đặc trưng từ một tên miền đơn lẻ trong các giới hạn đã nêu. Chương~\ref{chap:danh-gia} tiếp tục đánh giá ưu, nhược điểm và so sánh FANCI với các phương pháp liên quan.
