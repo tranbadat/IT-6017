@@ -64,23 +64,23 @@ FANCI được tổ chức thành ba module: huấn luyện (training), phân lo
 
 \subsubsection{Module huấn luyện}
 
-Vì FANCI dựa trên bộ phân loại học có giám sát, module huấn luyện cần đầu vào là dữ liệu đã được gán nhãn: tập mAGD và tập bNXD. Trong thực tế, tập mAGD được lấy từ DGArchive \cite{dgarchive}, một cơ sở dữ liệu tên miền độc hại được dựng lại từ các DGA đã dịch ngược, nên là nguồn dữ liệu độc hại đáng tin cậy. Giả sử FANCI vận hành trong một mạng doanh nghiệp hoặc trường học, tập bNXD có thể thu thập trực tiếp từ DNS resolver của mạng đó.
+Vì FANCI dựa trên bộ phân loại học có giám sát, module huấn luyện cần đầu vào là dữ liệu đã được gán nhãn: tập mAGD và tập bNXD. Trong thực tế, tập mAGD được lấy từ DGArchive \cite{dgarchive} --- cơ sở dữ liệu tên miền độc hại dựng lại từ các DGA đã được dịch ngược, nên rất đáng tin cậy làm nguồn dữ liệu độc hại. Giả sử FANCI vận hành trong một mạng doanh nghiệp hoặc trường học, tập bNXD có thể thu thập trực tiếp từ DNS resolver của mạng đó.
 
-Trước khi trích xuất đặc trưng, module thực hiện một bước làm sạch: đối chiếu tập bNXD với toàn bộ mAGD đã biết trong DGArchive và loại bỏ những tên miền trùng khớp, nhằm thu được tập lành tính sạch nhất có thể cho huấn luyện. Sau bước làm sạch, đặc trưng được trích xuất cho từng mẫu (theo Mục~\ref{sec:dac-trung}). Đầu ra của module là một mô hình đã huấn luyện, sẵn sàng phân loại các NXD chưa biết ở module phân loại.
+Trước khi trích xuất đặc trưng, module thực hiện một bước làm sạch: đối chiếu tập bNXD với toàn bộ mAGD đã biết trong DGArchive và loại bỏ những tên miền trùng khớp, nhằm thu được tập lành tính "sạch" nhất có thể cho huấn luyện. Sau bước làm sạch, đặc trưng được trích xuất cho từng mẫu (theo Mục~\ref{sec:dac-trung}). Đầu ra của module là một mô hình đã huấn luyện, sẵn sàng phân loại các NXD chưa biết ở module phân loại.
 
 \subsubsection{Module phân loại}
 
-Module phân loại nhận một mô hình từ module huấn luyện và sử dụng mô hình đó để gán nhãn cho từng NXD đơn lẻ. Đầu vào là một tên miền cần phân loại, được gửi tới bởi module tình báo (Mục~\ref{sec:kien-truc}) hoặc bởi bất kỳ nguồn nào khác. Quy trình gồm hai bước: trước hết trích xuất đặc trưng trên NXD đầu vào, sau đó thực hiện bước phân loại trên véc-tơ đặc trưng bằng RF hoặc SVM với mô hình đã huấn luyện. Đầu ra là một nhãn nhận một trong hai giá trị: lành tính hoặc độc hại. Module này có thể sử dụng độc lập hoặc kết hợp với module tình báo.
+Module phân loại nhận một mô hình từ module huấn luyện và dùng nó để gán nhãn cho từng NXD đơn lẻ. Đầu vào là một tên miền cần phân loại, được gửi tới hoặc bởi module tình báo (Mục~\ref{sec:kien-truc}) hoặc bởi bất kỳ nguồn nào khác. Quy trình gồm hai bước: trước hết trích xuất đặc trưng trên NXD đầu vào, sau đó thực hiện phân loại thực sự trên véc-tơ đặc trưng bằng RF hoặc SVM với mô hình đã huấn luyện. Đầu ra là một nhãn nhận một trong hai giá trị: \textit{lành tính} hoặc \textit{độc hại}. Module này có thể dùng độc lập hoặc kết hợp với module tình báo.
 
 \subsubsection{Module tình báo}
 
-Nhiệm vụ của module tình báo là cung cấp tri thức tình báo dựa trên kết quả phân loại, cụ thể là truy tìm các thiết bị bị nhiễm và phát hiện DGA mới hoặc seed chưa biết. Khác với module phân loại vốn chỉ nhận đầu vào là bản thân NXD, module tình báo nhận thêm địa chỉ IP nguồn, IP đích và thời điểm (timestamp) của mỗi phản hồi NXD, nhờ đó có thể ánh xạ một nhãn độc hại ngược trở lại thiết bị đã phát ra truy vấn.
+Nhiệm vụ của module tình báo là cung cấp tri thức tình báo dựa trên kết quả phân loại, cụ thể là truy tìm các thiết bị bị nhiễm và phát hiện DGA mới hoặc seed chưa biết. Khác với module phân loại vốn chỉ nhận đầu vào là bản thân NXD, module tình báo nhận thêm địa chỉ IP nguồn, IP đích và thời điểm (timestamp) của mỗi phản hồi NXD, nhờ đó có thể ánh xạ một nhãn "độc hại" ngược trở lại thiết bị đã phát ra truy vấn.
 
-Ở bước tiền xử lý, module trích xuất tên miền cùng các siêu dữ liệu nói trên từ phản hồi NXD, gọi module phân loại để xác định nhãn, rồi lưu kết quả kèm siêu dữ liệu vào cơ sở dữ liệu. Bước hậu xử lý gồm hai công đoạn là lọc và biến đổi.
+Ở bước tiền xử lý, module trích xuất tên miền cùng các siêu dữ liệu nói trên từ phản hồi NXD, gọi module phân loại để xác định nhãn, rồi lưu kết quả kèm siêu dữ liệu vào cơ sở dữ liệu. Bước hậu xử lý gồm hai công đoạn: \textit{lọc} và \textit{biến đổi}.
 
 \begin{itemize}
-  \item Lọc (filtering). Nhằm giảm thêm số dương tính giả (FP), toàn bộ các mẫu dương tính được đối chiếu với hai danh sách trắng; một NXD bị loại khỏi danh sách dương tính nếu kết thúc bằng một tên miền có trong danh sách trắng. Danh sách trắng toàn cục gồm top $X$ tên miền phổ biến nhất theo Alexa (với $X$ cấu hình được), dựa trên giả định kẻ tấn công không thể đặt máy chủ C\&C dưới những tên miền phổ biến nhất; để tránh whitelist nhầm các tên miền như \texttt{dyndns.org}, hệ thống loại trừ mọi tên miền có thể đăng ký công khai theo Public Suffix List của Mozilla \cite{publicsuffix}. Danh sách trắng cục bộ gồm các tên miền xuất hiện với tần suất cao trong chính mạng đang vận hành (ví dụ \texttt{rwth-aachen.de}, \texttt{sophosxl.net} với mạng RWTH).
-  \item Biến đổi (transformation). Sau khi lọc, dữ liệu được biến đổi để tạo ra các góc nhìn khác nhau phục vụ phân tích thủ công: nhóm các mẫu dương tính theo TLD hoặc tên miền cấp hai (SLD), nhóm theo địa chỉ IP của thiết bị truy vấn, và nhóm theo mốc thời gian; ngoài ra còn hỗ trợ tìm kiếm và lọc theo chuỗi ký tự.
+  \item \textbf{Lọc (filtering).} Nhằm giảm thêm số dương tính giả (FP), toàn bộ các mẫu dương tính được đối chiếu với hai danh sách trắng; một NXD sẽ bị loại khỏi danh sách dương tính nếu nó kết thúc bằng một tên miền có trong danh sách trắng. \textit{Danh sách trắng toàn cục} gồm top $X$ tên miền phổ biến nhất theo Alexa (với $X$ cấu hình được), dựa trên giả định kẻ tấn công không thể đặt máy chủ C\&C dưới những tên miền phổ biến nhất; để tránh whitelist nhầm các tên miền như \texttt{dyndns.org}, hệ thống loại trừ mọi tên miền có thể đăng ký công khai theo Public Suffix List của Mozilla \cite{publicsuffix}. \textit{Danh sách trắng cục bộ} gồm các tên miền xuất hiện với tần suất cao trong chính mạng đang vận hành (ví dụ \texttt{rwth-aachen.de}, \texttt{sophosxl.net} với mạng RWTH).
+  \item \textbf{Biến đổi (transformation).} Sau khi lọc, dữ liệu được biến đổi để tạo ra các góc nhìn khác nhau phục vụ phân tích thủ công: nhóm các mẫu dương tính theo TLD hoặc tên miền cấp hai (SLD), nhóm theo địa chỉ IP của thiết bị truy vấn, và nhóm theo mốc thời gian; ngoài ra còn hỗ trợ tìm kiếm và lọc theo chuỗi ký tự.
 \end{itemize}
 
 \subsubsection{Kịch bản triển khai}
@@ -88,31 +88,31 @@ Nhiệm vụ của module tình báo là cung cấp tri thức tình báo dựa 
 Nhờ thiết kế module hoá và đặc trưng nhẹ, FANCI hỗ trợ hai nhóm kịch bản triển khai chính:
 
 \begin{itemize}
-  \item Cục bộ (local). Kịch bản này điển hình cho mạng doanh nghiệp hoặc trường học có hạ tầng DNS tập trung. FANCI được sử dụng như một hệ thống đầy đủ ba module: huấn luyện bộ phân loại bằng bNXD của chính mạng, phát hiện thời gian thực trên các phản hồi NXD, ánh xạ mAGD phát hiện được về thiết bị nhiễm, từ đó kích hoạt giám sát bổ sung, đưa vào danh sách đen hoặc sinkhole các tên miền C\&C. Các mAGD do FANCI phát hiện được xem là dấu hiệu xâm nhập (IOC) có độ tin cậy cao và có thể tích hợp vào phần mềm giám sát sẵn có.
-  \item Thuê ngoài (outsourced). Kịch bản này tận dụng khả năng tổng quát hoá của FANCI: huấn luyện mô hình bằng dữ liệu của một mạng rồi sử dụng để phát hiện ở mạng khác, phù hợp với các mạng nhỏ (doanh nghiệp nhỏ) hoặc mạng khó thu thập tập bNXD sạch (mạng ISP). Module phân loại còn có thể cung cấp dưới dạng dịch vụ qua API hoặc web service, khi đó chỉ cần gửi tên miền cần phân loại lên máy chủ. Toàn bộ tập mAGD đã gán nhãn cũng có thể chia sẻ như một nguồn tin tình báo mối đe doạ (threat intelligence feed).
+  \item \textbf{Cục bộ (local).} Điển hình cho mạng doanh nghiệp hoặc trường học có hạ tầng DNS tập trung. FANCI được dùng như một hệ thống đầy đủ ba module: huấn luyện bộ phân loại bằng bNXD của chính mạng, phát hiện thời gian thực trên các phản hồi NXD, ánh xạ mAGD phát hiện được về thiết bị nhiễm, từ đó kích hoạt giám sát bổ sung, đưa vào danh sách đen hoặc sinkhole các tên miền C\&C. Các mAGD do FANCI phát hiện được xem là dấu hiệu xâm nhập (IOC) có độ tin cậy cao và có thể tích hợp vào phần mềm giám sát sẵn có.
+  \item \textbf{Thuê ngoài (outsourced).} Tận dụng khả năng tổng quát hoá tốt của FANCI: huấn luyện mô hình bằng dữ liệu của một mạng rồi dùng để phát hiện ở mạng khác --- phù hợp với các mạng nhỏ (doanh nghiệp nhỏ) hoặc mạng khó thu thập tập bNXD sạch (mạng ISP). Module phân loại còn có thể cung cấp \textit{dưới dạng dịch vụ} qua API/web service, khi đó chỉ cần gửi tên miền cần phân loại lên máy chủ. Toàn bộ tập mAGD đã gán nhãn cũng có thể chia sẻ như một nguồn tin tình báo mối đe doạ (threat intelligence feed).
 \end{itemize}
 
 \subsection{Bộ 21 đặc trưng phân loại}\label{sec:dac-trung}
 
-Trọng tâm của FANCI là bộ 21 đặc trưng dùng để phân loại NXD thành bNXD hay mAGD. Toàn bộ đặc trưng được thiết kế theo tiêu chí: nhẹ khi trích xuất, không cần tính toán trước hay tri thức tiên nghiệm, và độc lập ngôn ngữ. Bộ đặc trưng được chia thành ba nhóm: 12 đặc trưng cấu trúc, 7 đặc trưng ngôn ngữ và 2 đặc trưng thống kê.
+Trọng tâm của FANCI là bộ 21 đặc trưng dùng để phân loại NXD thành bNXD hay mAGD. Toàn bộ đặc trưng được thiết kế theo tiêu chí: nhẹ khi trích xuất, không cần tính toán trước hay tri thức tiên nghiệm, và độc lập ngôn ngữ. Bộ đặc trưng được chia thành ba nhóm: 12 đặc trưng \textit{cấu trúc}, 7 đặc trưng \textit{ngôn ngữ} và 2 đặc trưng \textit{thống kê}.
 
 \subsubsection{Định nghĩa và ký hiệu}
 
-Một tên miền $d$ là một dãy ký tự trên bảng chữ cái $\Sigma$, gồm nhiều subdomain phân tách bởi dấu chấm: $d = s_n.\ldots.s_2.s_1$, trong đó $s_i$ ($i \in \{1,\ldots,n\}$) là subdomain thứ $i$ của $d$. Một số khái niệm được dùng xuyên suốt:
+Một \textit{tên miền} $d$ là một dãy ký tự trên bảng chữ cái $\Sigma$, gồm nhiều subdomain phân tách bởi dấu chấm: $d = s_n.\ldots.s_2.s_1$, trong đó $s_i$ ($i \in \{1,\ldots,n\}$) là subdomain thứ $i$ của $d$. Một số khái niệm được dùng xuyên suốt:
 
 \begin{itemize}
-  \item TLD hợp lệ: tên miền cấp cao nhất nằm trong danh sách chính thức do IANA duy trì (ví dụ \texttt{org}, \texttt{com}, \texttt{eu}, \texttt{edu}); hiện có 1.547 TLD hợp lệ.
-  \item Public suffix: hậu tố mà dưới đó tên miền có thể đăng ký công khai, bao gồm cả TLD hợp lệ lẫn các hậu tố như \texttt{co.uk} hay \texttt{dyndns.org}; danh sách Public Suffix List của Mozilla \cite{publicsuffix} chứa hơn 11.000 mục.
-  \item Chuỗi $d_{dsf}$: chuỗi thu được sau khi bỏ toàn bộ dấu chấm và public suffix khỏi $d$ (dot-free public-suffix-free). Ví dụ $d = \texttt{itsec.rwth-aachen.de}$ cho $d_{dsf} = \texttt{itsecrwth-aachen}$.
+  \item \textbf{TLD hợp lệ:} tên miền cấp cao nhất nằm trong danh sách chính thức do IANA duy trì (ví dụ \texttt{org}, \texttt{com}, \texttt{eu}, \texttt{edu}); hiện có 1.547 TLD hợp lệ.
+  \item \textbf{Public suffix:} hậu tố mà dưới đó tên miền có thể đăng ký công khai, bao gồm cả TLD hợp lệ lẫn các hậu tố như \texttt{co.uk} hay \texttt{dyndns.org}; danh sách Public Suffix List của Mozilla \cite{publicsuffix} chứa hơn 11.000 mục.
+  \item \textbf{Chuỗi $d_{dsf}$:} chuỗi thu được sau khi bỏ toàn bộ dấu chấm và public suffix khỏi $d$ (dot-free public-suffix-free). Ví dụ $d = \texttt{itsec.rwth-aachen.de}$ cho $d_{dsf} = \texttt{itsecrwth-aachen}$.
 \end{itemize}
 
-Mỗi đặc trưng là một hàm $F$ của mẫu $d$; giá trị $F(d)$ có thể là một số vô hướng hoặc một véc-tơ. Ghép nối tất cả đặc trưng cho ra véc-tơ đặc trưng của $d$. Theo quy ước của bài báo, các đặc trưng đánh dấu $*$ bỏ qua dấu chấm phân tách, các đặc trưng đánh dấu $\dagger$ bỏ qua public suffix. Dấu chấm được bỏ qua vì đặc trưng số lượng subdomain đã phản ánh thông tin này. Public suffix được bỏ qua vì không do DGA sinh ra: một DGA tuy có thể thay đổi public suffix nhưng chỉ có thể chọn trong tập public suffix chính thức mà cả tên miền lành tính cũng chọn, nên public suffix không giúp phân biệt mAGD với bNXD.
+Mỗi \textit{đặc trưng} là một hàm $F$ của mẫu $d$; giá trị $F(d)$ có thể là một số vô hướng hoặc một véc-tơ. Ghép nối tất cả đặc trưng cho ra véc-tơ đặc trưng của $d$. Theo quy ước của bài báo, các đặc trưng đánh dấu $*$ bỏ qua dấu chấm phân tách, các đặc trưng đánh dấu $\dagger$ bỏ qua public suffix. Lý do bỏ dấu chấm: đặc trưng "số lượng subdomain" đã phản ánh thông tin này. Lý do bỏ public suffix: public suffix không do DGA sinh ra --- dù một DGA có thể thay đổi public suffix, nó vẫn phải chọn từ đúng tập public suffix chính thức mà cả tên miền lành tính cũng chọn, nên public suffix không giúp phân biệt mAGD với bNXD.
 
 Toàn bộ ví dụ minh hoạ trong các bảng dưới đây dùng hai tên miền: $d_1 = \texttt{bnxd.rwth-aachen.de}$ (lành tính) và $d_2 = \texttt{dekh1her76avy0qnelivijwd1.ddns.net}$ (mAGD đã biết).
 
 \subsubsection{Nhóm đặc trưng cấu trúc}
 
-Nhóm cấu trúc gồm 12 đặc trưng (\#1 đến \#12), tập trung vào các thuộc tính cấu trúc của tên miền. Bảng~\ref{tab:cau-truc} liệt kê và minh hoạ giá trị trên $d_1$, $d_2$.
+Nhóm cấu trúc gồm 12 đặc trưng (\#1--\#12), tập trung vào các thuộc tính cấu trúc của tên miền. Bảng~\ref{tab:cau-truc} liệt kê và minh hoạ giá trị trên $d_1$, $d_2$.
 
 \begin{table}[H]
 \centering
@@ -141,15 +141,15 @@ Nhóm cấu trúc gồm 12 đặc trưng (\#1 đến \#12), tập trung vào cá
 Phần lớn đặc trưng trong nhóm này tự giải thích; bốn đặc trưng \#7, \#9, \#10, \#12 cần làm rõ:
 
 \begin{itemize}
-  \item (\#7) Là lặp tiền tố thuần tuý. Đây là đặc trưng nhị phân, nhận giá trị 1 khi và chỉ khi tên miền là một chuỗi ký tự $w$ được lặp lại ít nhất hai lần. Ví dụ \texttt{rwth-aachen.derwth-aachen.de} cho giá trị 1, còn \texttt{rwthrwth-aachen.de} cho giá trị 0.
-  \item (\#9) Tỷ lệ subdomain toàn chữ số. Đặc trưng này bằng số subdomain chỉ gồm chữ số chia cho tổng số subdomain, có bỏ public suffix. Ví dụ \texttt{123.itsec.rwth-aachen.de} cho giá trị $1/3$ (ba subdomain sau khi loại public suffix \texttt{de}, trong đó một subdomain toàn chữ số).
-  \item (\#10) Tỷ lệ subdomain toàn ký tự thập lục phân. Đặc trưng này được định nghĩa tương tự \#9 nhưng xét các subdomain chỉ gồm ký tự thập lục phân.
-  \item (\#12) Có chứa địa chỉ IP. Đây là đặc trưng nhị phân, nhận giá trị 1 khi và chỉ khi tên miền có chứa địa chỉ IP theo các ký pháp IPv4 hoặc IPv6 thông dụng.
+  \item \textbf{(\#7) Là lặp tiền tố thuần tuý.} Đặc trưng nhị phân, nhận giá trị 1 khi và chỉ khi tên miền là một chuỗi ký tự $w$ được lặp lại ít nhất hai lần. Ví dụ \texttt{rwth-aachen.derwth-aachen.de} cho giá trị 1, nhưng \texttt{rwthrwth-aachen.de} cho giá trị 0.
+  \item \textbf{(\#9) Tỷ lệ subdomain toàn chữ số.} Bằng số subdomain chỉ gồm chữ số chia cho tổng số subdomain, có bỏ public suffix. Ví dụ \texttt{123.itsec.rwth-aachen.de} cho $1/3$ (ba subdomain sau khi loại public suffix \texttt{de}, trong đó một subdomain toàn chữ số).
+  \item \textbf{(\#10) Tỷ lệ subdomain toàn ký tự thập lục phân.} Định nghĩa tương tự \#9 nhưng xét các subdomain chỉ gồm ký tự thập lục phân.
+  \item \textbf{(\#12) Có chứa địa chỉ IP.} Đặc trưng nhị phân, nhận giá trị 1 khi và chỉ khi tên miền có chứa địa chỉ IP theo các ký pháp IPv4 hoặc IPv6 thông dụng.
 \end{itemize}
 
 \subsubsection{Nhóm đặc trưng ngôn ngữ}
 
-Nhóm ngôn ngữ gồm 7 đặc trưng (\#13 đến \#19), nắm bắt các sai lệch so với đặc điểm ngôn ngữ thường thấy ở tên miền (Bảng~\ref{tab:ngon-ngu}).
+Nhóm ngôn ngữ gồm 7 đặc trưng (\#13--\#19), nắm bắt các sai lệch so với đặc điểm ngôn ngữ thường thấy ở tên miền (Bảng~\ref{tab:ngon-ngu}).
 
 \begin{table}[H]
 \centering
@@ -173,22 +173,22 @@ Nhóm ngôn ngữ gồm 7 đặc trưng (\#13 đến \#19), nắm bắt các sai
 Ba đặc trưng cuối cần giải thích chi tiết:
 
 \begin{itemize}
-  \item (\#17) Tỷ lệ ký tự lặp. Đặc trưng này được tính trên $d_{dsf}$, bằng số ký tự xuất hiện nhiều hơn một lần trong $d_{dsf}$ chia cho lực lượng bảng chữ cái (\#16). Với $d = \texttt{bnxd.rwth-aachen.de}$, giá trị là $3/12$: các ký tự lặp trong $d_{dsf} = \texttt{bnxdrwth-aachen}$ là \texttt{n}, \texttt{h} và \texttt{a}.
-  \item (\#18) Tỷ lệ phụ âm liên tiếp. Đặc trưng này cộng độ dài của các dãy phụ âm rời nhau có độ dài $\geq 2$ rồi chia cho độ dài của $d_{dsf}$. Với $d = \texttt{bnxd.rwth-aachen.de}$, giá trị là $(8+2)/15 = 0{,}67$, trong đó $d_{dsf} = \texttt{bnxdrwth-aachen}$ và hai dãy phụ âm liên tiếp rời nhau là \texttt{bnxdrwth} (dài 8) và \texttt{ch} (dài 2).
-  \item (\#19) Tỷ lệ chữ số liên tiếp. Đặc trưng này được định nghĩa hoàn toàn tương tự \#18 nhưng xét các dãy chữ số liên tiếp.
+  \item \textbf{(\#17) Tỷ lệ ký tự lặp.} Tính trên $d_{dsf}$, bằng số ký tự xuất hiện nhiều hơn một lần trong $d_{dsf}$ chia cho lực lượng bảng chữ cái (\#16). Với $d = \texttt{bnxd.rwth-aachen.de}$, giá trị là $3/12$: các ký tự lặp trong $d_{dsf} = \texttt{bnxdrwth-aachen}$ là \texttt{n}, \texttt{h}, \texttt{a}.
+  \item \textbf{(\#18) Tỷ lệ phụ âm liên tiếp.} Cộng độ dài của các dãy phụ âm rời nhau có độ dài $\geq 2$ rồi chia cho độ dài của $d_{dsf}$. Với $d = \texttt{bnxd.rwth-aachen.de}$, ta có $(8+2)/15 = 0{,}67$, trong đó $d_{dsf} = \texttt{bnxdrwth-aachen}$ và hai dãy phụ âm liên tiếp rời nhau là \texttt{bnxdrwth} (dài 8) và \texttt{ch} (dài 2).
+  \item \textbf{(\#19) Tỷ lệ chữ số liên tiếp.} Định nghĩa hoàn toàn tương tự \#18 nhưng xét các dãy chữ số liên tiếp.
 \end{itemize}
 
 \subsubsection{Nhóm đặc trưng thống kê}
 
-Nhóm thống kê gồm 2 đặc trưng (\#20 và \#21) nhưng đóng góp phần lớn số chiều của véc-tơ đặc trưng.
+Nhóm thống kê gồm 2 đặc trưng (\#20 và \#21) nhưng lại đóng góp phần lớn số chiều của véc-tơ đặc trưng.
 
 \paragraph{(\#20) Phân bố tần suất n-gram.} Một $n$-gram của tên miền $d$ là đa tập gồm mọi dãy con ký tự $e$ (có thể chồng lấn), $e \in d_{dsf}$, với $|e| = n$; ký hiệu $f_n$ là phân bố tần suất tương ứng. Đặc trưng phân bố tần suất $n$-gram được định nghĩa bằng véc-tơ bảy giá trị thống kê:
 \begin{equation}
 g_n = \left(\overline{f_n},\; \sigma(f_n),\; \min(f_n),\; \max(f_n),\; \widetilde{f_n},\; f^{\,n}_{0{,}25},\; f^{\,n}_{0{,}75}\right),
 \end{equation}
-trong đó $\overline{f_n}$ là trung bình cộng, $\sigma(f_n)$ là độ lệch chuẩn, $\min(f_n)$ và $\max(f_n)$ là cực tiểu và cực đại, $\widetilde{f_n}$ là trung vị, còn $f^{\,n}_{0{,}25}$ và $f^{\,n}_{0{,}75}$ là tứ phân vị dưới và trên. FANCI sử dụng đồng thời $g_1$, $g_2$, $g_3$ (tức $n = 1, 2, 3$), mỗi $g_n$ cho 7 giá trị, nên riêng đặc trưng \#20 sinh ra $3 \times 7 = 21$ giá trị đầu ra.
+trong đó $\overline{f_n}$ là trung bình cộng, $\sigma(f_n)$ là độ lệch chuẩn, $\min(f_n)$ và $\max(f_n)$ là cực tiểu và cực đại, $\widetilde{f_n}$ là trung vị, còn $f^{\,n}_{0{,}25}$ và $f^{\,n}_{0{,}75}$ là tứ phân vị dưới và trên. FANCI sử dụng đồng thời $g_1$, $g_2$, $g_3$ (tức $n = 1, 2, 3$), mỗi $g_n$ cho 7 giá trị, nên riêng đặc trưng \#20 đã sinh ra $3 \times 7 = 21$ giá trị đầu ra.
 
-\paragraph{(\#21) Entropy Shannon.} Đặc trưng này được tính theo phân bố tần suất 1-gram $f_1$ của $d$:
+\paragraph{(\#21) Entropy Shannon.} Được tính theo phân bố tần suất 1-gram $f_1$ của $d$:
 \begin{equation}
 H(d) = -\sum_{c \,\in\, d_{dsf}} p_c \log_2 p_c,
 \end{equation}
@@ -196,15 +196,15 @@ với $p_c$ là tần suất tương đối của ký tự $c$ theo $f_1$. Entro
 
 \subsection{Thuật toán phân loại}\label{sec:thuat-toan}
 
-FANCI sử dụng hai họ bộ phân loại học có giám sát cổ điển với hai nhãn lành tính và độc hại là rừng ngẫu nhiên (RF) và máy vector hỗ trợ (SVM). Đây là các thuật toán nhẹ, có thời gian dự đoán nhanh, phù hợp với mục tiêu phát hiện tức thời của FANCI. Việc không sử dụng các mô hình học sâu là một lựa chọn có chủ đích: đặc trưng đã được thiết kế tường minh và đủ phân biệt, nên các bộ phân loại cổ điển đạt độ chính xác cao mà vẫn giữ được tính hiệu quả và khả năng giải thích.
+FANCI sử dụng hai họ bộ phân loại học có giám sát cổ điển với hai nhãn \textit{lành tính} và \textit{độc hại}: rừng ngẫu nhiên (RF) và máy vector hỗ trợ (SVM). Đây là các thuật toán nhẹ, có thời gian dự đoán nhanh --- phù hợp với mục tiêu phát hiện tức thời của FANCI. Việc không dùng các mô hình học sâu là chủ ý: đặc trưng đã được thiết kế tường minh và đủ phân biệt, nên các bộ phân loại "cổ điển" đã đạt độ chính xác rất cao mà vẫn giữ được tính hiệu quả và khả năng giải thích.
 
 \subsubsection{Rừng ngẫu nhiên}
 
-Rừng ngẫu nhiên \cite{ho1995random,breiman2001random} là một tập hợp (ensemble) gồm nhiều cây quyết định, ra đời nhằm khắc phục hạn chế của một cây quyết định đơn lẻ. Mỗi cây được huấn luyện trên một tập con dữ liệu và một tập con đặc trưng được chọn ngẫu nhiên; khi dự đoán nhãn của một mẫu chưa biết, kết quả được xác định bằng bỏ phiếu đa số của toàn bộ các cây. Ba tham số chính điều khiển RF gồm: $T$ là số cây trong rừng; $F$ là số đặc trưng được xét tại mỗi nút phân tách; và $i(N)$ là tiêu chí độ vẩn đục (impurity) để chọn phép phân tách, có thể là Gini hoặc entropy.
+Rừng ngẫu nhiên \cite{ho1995random,breiman2001random} là một tập hợp (ensemble) gồm nhiều cây quyết định, ra đời nhằm khắc phục hạn chế của một cây quyết định đơn lẻ. Mỗi cây được huấn luyện trên một tập con dữ liệu và một tập con đặc trưng được chọn ngẫu nhiên; khi dự đoán nhãn của một mẫu chưa biết, RF lấy kết quả bằng bỏ phiếu đa số của toàn bộ các cây. Ba tham số chính điều khiển RF là: $T$ --- số cây trong rừng; $F$ --- số đặc trưng được xét tại mỗi nút phân tách; và $i(N)$ --- tiêu chí độ vẩn đục (impurity) để chọn phép phân tách, có thể là Gini hoặc entropy.
 
 \subsubsection{Máy vector hỗ trợ}
 
-Máy vector hỗ trợ \cite{cortes1995support} tìm một siêu phẳng trong quá trình huấn luyện để phân tách dữ liệu theo nhãn sao cho lề (margin) giữa hai lớp là lớn nhất; khi dự đoán, một mẫu chưa biết được gán nhãn dựa trên vị trí của mẫu đó so với siêu phẳng. Với dữ liệu không phân tách tuyến tính, SVM sử dụng hàm nhân (kernel) để ánh xạ sang không gian nhiều chiều hơn. FANCI xem xét hai kernel là tuyến tính (linear) và hàm cơ sở xuyên tâm (RBF), với hai siêu tham số chính là $C$ (hệ số phạt cho lỗi phân loại) và $\gamma$ (tham số của kernel RBF).
+Máy vector hỗ trợ \cite{cortes1995support} tìm một siêu phẳng trong quá trình huấn luyện để phân tách dữ liệu theo nhãn sao cho lề (margin) giữa hai lớp là lớn nhất; khi dự đoán, một mẫu chưa biết được gán nhãn dựa trên vị trí của nó so với siêu phẳng. Với dữ liệu không phân tách tuyến tính, SVM dùng hàm nhân (kernel) để ánh xạ sang không gian nhiều chiều hơn. FANCI xét hai kernel là tuyến tính (linear) và hàm cơ sở xuyên tâm (RBF), với hai siêu tham số chính là $C$ (hệ số phạt cho lỗi phân loại) và $\gamma$ (tham số của kernel RBF).
 
 \subsubsection{Lựa chọn siêu tham số}
 
@@ -226,8 +226,8 @@ Máy vector hỗ trợ (SVM) & Kernel RBF; $C = 0{,}9160$; $\gamma = 0{,}0198$. 
 \end{tabularx}
 \end{table}
 
-Qua đánh giá thực nghiệm (trình bày ở Chương~\ref{chap:thuc-nghiem}), một bộ phân loại RF duy nhất huấn luyện trên toàn bộ các DGA đã biết cho kết quả tốt hơn mọi tổ hợp phức tạp hơn đã thử. Do đó, cấu hình chính thức của FANCI là một RF đơn lẻ huấn luyện trên mAGD của tất cả DGA đã biết.
+Qua đánh giá thực nghiệm (trình bày ở Chương~\ref{chap:thuc-nghiem}), một bộ phân loại RF duy nhất huấn luyện trên toàn bộ các DGA đã biết cho kết quả tốt hơn mọi tổ hợp phức tạp hơn đã thử. Do đó, cấu hình chính thức của FANCI là \textit{một RF đơn lẻ huấn luyện trên mAGD của tất cả DGA đã biết}.
 
 \subsection{Tiểu kết chương}
 
-Chương này đã trình bày phương pháp FANCI trên ba khía cạnh: kiến trúc ba module (huấn luyện, phân loại, tình báo) cho phép triển khai linh hoạt tại chỗ hoặc dưới dạng dịch vụ; bộ 21 đặc trưng chia thành ba nhóm cấu trúc, ngôn ngữ và thống kê, tất cả đều trích xuất trực tiếp từ một tên miền đơn lẻ nên nhẹ và độc lập ngôn ngữ; và hai thuật toán phân loại RF, SVM cùng cách lựa chọn siêu tham số. Thiết kế đặc trưng chỉ dựa trên bản thân tên miền là điểm mấu chốt giúp FANCI đạt đồng thời tính nhẹ và khả năng tổng quát hoá tốt. Các phân tích định lượng về độ chính xác, khả năng tổng quát hoá và tốc độ nhằm chứng minh cho những khẳng định này sẽ được trình bày trong Chương~\ref{chap:thuc-nghiem}.
+Chương này đã trình bày phương pháp FANCI trên ba khía cạnh: kiến trúc ba module (huấn luyện, phân loại, tình báo) cho phép triển khai linh hoạt tại chỗ hoặc dưới dạng dịch vụ; bộ 21 đặc trưng chia thành ba nhóm cấu trúc, ngôn ngữ và thống kê, tất cả đều trích xuất trực tiếp từ một tên miền đơn lẻ nên nhẹ và độc lập ngôn ngữ; và hai thuật toán phân loại RF, SVM cùng cách lựa chọn siêu tham số. Chính thiết kế đặc trưng "chỉ từ tên miền" là điểm mấu chốt giúp FANCI vừa nhẹ vừa tổng quát hoá tốt. Các phân tích định lượng chứng minh cho những khẳng định này --- độ chính xác, khả năng tổng quát hoá và tốc độ --- sẽ được trình bày trong Chương~\ref{chap:thuc-nghiem}.
