@@ -1,21 +1,122 @@
-% Chương 5 - Phụ trách: Vũ Đức Minh | Báo cáo ~2-3 trang
+% Chương 5 - Phụ trách: Vũ Đức Minh.
+% Dung lượng: 7 trang theo định dạng báo cáo hiện tại.
+% Nguồn số liệu: FANCI, USENIX Security 2018, Mục 5--6 và Phụ lục A.
 \section{ĐÁNH GIÁ TỔNG HỢP}\label{chap:danh-gia}
-\canviet{Phụ trách: Vũ Đức Minh. Dung lượng dự kiến: 2--3 trang. Mở chương bằng 2--3 câu giới thiệu nội dung chương.}
+
+Chương này đánh giá FANCI trên cơ sở phương pháp ở Chương~\ref{chap:fanci} và kết quả ở Chương~\ref{chap:thuc-nghiem}. Nội dung tập trung vào lựa chọn RF hay SVM, vị trí của FANCI so với các hệ thống liên quan, ưu điểm và hạn chế của việc phân loại từ một tên miền đơn lẻ. Các nhận xét dựa trên kết quả công bố của tác giả \cite{schuppen2018fanci} và phân tích của nhóm, chưa phải kết quả tái lập FANCI trên một mạng mới.
 
 \subsection{So sánh Random Forest và SVM}\label{sec:rf-vs-svm}
-\canviet{Lập bảng ACC của RF và SVM theo từng thí nghiệm (Bảng 4--10 và Phụ lục A của bài báo). RF tốt hơn trong hầu hết trường hợp, ngoại trừ thí nghiệm seed chưa biết; giải thích vì sao FANCI chọn một RF duy nhất.}
+
+RF và SVM sử dụng cùng bộ đặc trưng của FANCI nhưng có cơ chế ra quyết định khác nhau. RF kết hợp kết quả từ nhiều cây quyết định, còn SVM xây dựng ranh giới phân tách trong không gian đặc trưng. Trong nghiên cứu, siêu tham số của hai thuật toán được chọn trên các tập riêng với tập đánh giá rồi cố định cho các thí nghiệm tiếp theo. Vì vậy, so sánh dưới đây phản ánh hai cấu hình đã được lựa chọn trong bài báo, không phải ưu thế của một thuật toán trong mọi bài toán phân loại.
+
+Bảng~\ref{tab:c5-rf-svm} tổng hợp ACC trung bình của bảy kịch bản từ phần chính và Phụ lục A của bài báo. Cột cuối là hiệu ACC của RF và SVM do nhóm tính từ số liệu công bố, biểu diễn bằng \emph{điểm phần trăm}; giá trị dương cho biết RF có ACC cao hơn. Các kịch bản có cách xây dựng tập dữ liệu và giao thức đánh giá khác nhau, nên mỗi hàng được xem xét trong phạm vi thí nghiệm tương ứng.
+
+\begin{table}[H]
+\centering
+\caption{So sánh ACC trung bình của RF và SVM (Bảng 4--10 và 13--19 của \cite{schuppen2018fanci}).}
+\label{tab:c5-rf-svm}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|}
+\hline
+\rowcolor{LightCyan}
+\textbf{Kịch bản} & \textbf{RF (\%)} & \textbf{SVM (\%)} & \textbf{RF $-$ SVM} \\ \hline
+DGA riêng lẻ & 99,936 & 99,930 & $+0{,}006$ \\ \hline
+Seed chưa biết & 95,319 & 98,315 & $-2{,}996$ \\ \hline
+Nhiều DGA đã biết, RWTH & 99,759 & 99,464 & $+0{,}295$ \\ \hline
+DGA chưa biết & 98,073 & 97,972 & $+0{,}101$ \\ \hline
+Nhiều DGA đã biết, Siemens & 99,699 & 99,394 & $+0{,}305$ \\ \hline
+RWTH $\rightarrow$ Siemens & 99,534 & 99,180 & $+0{,}354$ \\ \hline
+Siemens $\rightarrow$ RWTH & 99,785 & 99,448 & $+0{,}337$ \\ \hline
+\end{tabularx}
+\end{table}
+
+RF có ACC cao hơn trong sáu kịch bản, nhưng mức chênh lệch không giống nhau. Với DGA riêng lẻ, hai thuật toán chỉ cách nhau $0{,}006$ điểm phần trăm. Khi phân loại nhiều DGA đã biết tại RWTH, RF đạt TPR $0{,}99764$, cao hơn mức $0{,}99148$ của SVM; ngược lại, FPR của SVM là $0{,}00221$, thấp hơn mức $0{,}00247$ của RF. Như vậy, ưu thế ACC của RF trong kịch bản này đi cùng khả năng phát hiện mAGD cao hơn, trong khi SVM báo nhầm ít hơn trên lớp bNXD. Chỉ xét ACC sẽ bỏ qua sự khác biệt giữa hai loại lỗi.
+
+Seed chưa biết là ngoại lệ đáng chú ý. RF đạt ACC trung bình $95{,}319\%$ và độ lệch chuẩn $0{,}12499$, còn SVM đạt $98{,}315\%$ và độ lệch chuẩn $0{,}06166$. Theo tác giả, cả hai đều gặp các DGA gây kết quả thấp, nhưng SVM không bỏ sót nhất quán tất cả seed mới của những DGA đó như RF trong thí nghiệm này \cite{schuppen2018fanci}. Kết quả cho thấy khả năng phân loại tốt các mẫu của một DGA đã biết không tự bảo đảm chất lượng trên mọi seed mới.
+
+Tác giả còn thử các tổ hợp bộ phân loại chuyên biệt bằng phép toán logic, bỏ phiếu theo ngưỡng và bỏ phiếu đa số, kể cả kết hợp RF với SVM. Một RF duy nhất được huấn luyện trên các DGA đã biết cho kết quả tốt hơn những tổ hợp đã thử, nên được chọn làm cấu hình chính của FANCI. Lựa chọn này có căn cứ thực nghiệm, đồng thời tránh phải duy trì một tập bộ phân loại riêng cho từng DGA. Tuy nhiên, bảng ACC không đủ để kết luận RF nhanh hơn SVM hoặc mọi chênh lệch đều có ý nghĩa thống kê; nhóm chưa thực hiện phép kiểm định hay đo lại chi phí của hai mô hình.
 
 \subsection{So sánh FANCI với các hệ thống liên quan}\label{sec:fanci-vs-khac}
-\canviet{Dựa trên Bảng~\ref{tab:so-sanh-phuong-phap}. Lưu ý so sánh khó công bằng vì các hệ thống có mục tiêu và dữ liệu khác nhau, dữ liệu và mã nguồn không công khai.}
+
+Bảng~\ref{tab:so-sanh-phuong-phap} đã tổng hợp các hệ thống theo dữ liệu đầu vào, yêu cầu theo dõi và chất lượng phát hiện. Điểm khác biệt rõ nhất của FANCI là đơn vị phân loại: một NXD có thể được đánh giá độc lập, trong khi các phương pháp được khảo sát thường cần tương quan nhiều truy vấn DNS hoặc luồng mạng. Sự khác biệt này tác động trực tiếp tới việc thu thập dữ liệu, lưu trạng thái và thời điểm đưa ra quyết định.
+
+Exposure hướng tới tên miền độc hại nói chung, sử dụng cả thông tin thời gian, bản ghi trả lời và TTL \cite{bilge2014exposure}. Winning with DNS Failures kết hợp truy vấn thành công với các NXD liên quan để xác định IP của máy chủ C\&C \cite{yadav2011winning}. Hai hệ thống có phạm vi rộng hơn hoặc đầu ra khác với bộ phân loại NXD của FANCI. Do đó, khả năng dùng ít dữ liệu của FANCI là lợi thế cho bài toán phát hiện mAGD, nhưng không đồng nghĩa hệ thống thay thế đầy đủ những chức năng phân tích hạ tầng C\&C của các phương pháp này.
+
+Pleiades trích xuất đặc trưng từ một nhóm NXD của cùng máy và kết hợp phân cụm để khám phá DGA \cite{antonakakis2012throwaway}. Khi nhóm tăng từ 5 lên 10 NXD, chất lượng phát hiện công bố được cải thiện, nhưng hệ thống phải có đủ truy vấn để hình thành nhóm. FANCI loại bỏ điều kiện chờ nhóm ở bước phân loại. Đổi lại, thông tin về mối liên hệ giữa nhiều truy vấn không tham gia trực tiếp vào quyết định của bộ phân loại FANCI; việc nhóm theo thiết bị hoặc thời gian thuộc module tình báo và phục vụ phân tích tiếp theo.
+
+Phoenix tập trung theo dõi botnet và hạ tầng C\&C, trong khi phương pháp của Grill và cộng sự sử dụng NetFlow/IPFIX để tìm dấu hiệu bất thường từ luồng mạng \cite{schiavoni2014phoenix,grill2015netflow}. NetFlow không cần dùng chính chuỗi tên miền làm đầu vào như FANCI, nên có ý nghĩa trong một điều kiện quan sát khác. Vì mục tiêu và nguồn dữ liệu khác nhau, TPR của Phoenix hay ACC của NetFlow không thể dùng như kết quả của một phép thử chung với FANCI. Những nhận định về tốc độ thấp hơn trong phần khảo sát của bài FANCI cũng chủ yếu là dự đoán từ yêu cầu theo dõi, không phải phép đo đối chứng trên cùng phần cứng.
+
+Từ các khác biệt trên, nhóm đánh giá ưu thế có căn cứ nhất của FANCI là yêu cầu dữ liệu đầu vào gọn và khả năng tách riêng chức năng phân loại. Bài báo cũng thừa nhận rằng khó so sánh công bằng độ chính xác và hiệu năng vì các hệ thống có mục tiêu khác nhau, còn dữ liệu và bản cài đặt dùng trong đánh giá không công khai \cite{schuppen2018fanci}. Vì vậy, các số liệu ở Chương~\ref{chap:co-so-ly-thuyet} cho thấy vị trí của từng hướng tiếp cận, chưa tạo thành một bảng xếp hạng tuyệt đối.
 
 \subsection{Ưu điểm của FANCI}\label{sec:uu-diem}
-\canviet{Chỉ cần một NXD, không theo dõi lưu lượng; độ chính xác cao, FPR thấp; tổng quát hoá tốt giữa các mạng; nhanh; triển khai được dạng dịch vụ; phát hiện được DGA mới trong thực tế.}
+
+\subsubsection{Phân loại độc lập và yêu cầu dữ liệu gọn}
+
+Bộ đặc trưng của FANCI mô tả cấu trúc, đặc điểm ngôn ngữ và phân bố ký tự của tên miền. Module phân loại không cần địa chỉ IP, lịch sử truy vấn hay nội dung đầy đủ của phản hồi DNS. Nhờ đó, một tên miền mới có thể được xử lý ngay khi được chuyển tới mô hình, không phải chờ thu đủ một nhóm NXD. Việc chỉ cần truyền chuỗi tên miền cũng tạo điều kiện cung cấp chức năng phân loại qua dịch vụ, như kịch bản ở Mục~\ref{sec:kien-truc}.
+
+Ưu điểm này cần được đặt đúng ở module phân loại. Để truy tìm thiết bị bị nhiễm, module tình báo vẫn dùng IP nguồn, IP đích và thời điểm của phản hồi. Tách hai chức năng giúp nơi thu thập giữ thông tin về thiết bị, còn nơi phân loại chỉ nhận dữ liệu cần thiết cho mô hình. Đây là khả năng của kiến trúc; mức bảo vệ dữ liệu khi triển khai còn phụ thuộc cách truyền, lưu trữ và phân quyền truy cập.
+
+\subsubsection{Chất lượng phát hiện và khả năng tổng quát hoá}
+
+Với nhiều DGA đã biết tại RWTH, RF đạt ACC $99{,}759\%$, TPR $99{,}764\%$ và FPR $0{,}247\%$. Khi giữ lại từng DGA khỏi huấn luyện, ACC trung bình vẫn đạt $98{,}073\%$. Hai kết quả hỗ trợ nhận xét rằng mô hình không chỉ nhận diện được những mẫu thuộc các DGA đã dùng để huấn luyện, mà còn có khả năng phát hiện các họ bị giữ lại trong giao thức LOGO. Đây là lợi thế so với việc chỉ đối chiếu tên miền với một danh sách mAGD đã biết.
+
+Khả năng chuyển mô hình giữa RWTH và Siemens là một ưu điểm khác. ACC của RF đạt trên $99{,}5\%$ ở cả hai chiều, dù bNXD của hai mạng có nguồn gốc khác nhau. Kết quả tạo cơ sở cho kịch bản huấn luyện ở một mạng rồi cung cấp phân loại cho mạng khác. Tuy nhiên, như Mục~\ref{sec:tong-quat-hoa} đã phân tích, phép thử chủ yếu thay đổi nguồn bNXD và vẫn dùng chung kho mAGD; ưu điểm này được xác nhận trong hai môi trường đã khảo sát, chưa phải trên mọi mạng doanh nghiệp.
+
+\subsubsection{Chi phí xử lý thấp và giá trị hỗ trợ điều tra}
+
+Phép đo tại Mục~\ref{sec:toc-do}, tính cả trích xuất đặc trưng, cho thời gian phân loại trung bình $234{,}76$ giây với $92.102$ mẫu trên một luồng, tương đương khoảng $392{,}3$ mẫu/giây. Việc công bố phần cứng và thời gian xử lý giúp đánh giá tính khả thi cụ thể hơn so với chỉ báo cáo ACC. Kết hợp với đầu vào đơn giản, kết quả cho thấy hướng thiết kế có khả năng phục vụ lượng lớn NXD mà không cần dựng đặc trưng từ lịch sử truy vấn của từng máy.
+
+Giá trị của FANCI còn nằm ở việc tổ chức kết quả cho điều tra. Trong đợt thử nghiệm tại RWTH, tác giả xác định 405 mAGD chưa biết thuộc 10 nhóm, trong đó ít nhất bốn nhóm được nhận định là DGA hoàn toàn mới. Kết quả được hình thành qua phân loại, lọc và rà soát bán tự động, chứ không chỉ từ nhãn của RF. FANCI vì vậy có vai trò bổ sung cho DGArchive: kho dữ liệu cung cấp mAGD đã biết để huấn luyện và đối chiếu, còn các cảnh báo của FANCI giúp tìm những nhóm cần nghiên cứu tiếp.
 
 \subsection{Hạn chế của FANCI}\label{sec:han-che}
-\canviet{DGA dựa trên danh sách từ (Matsnu, GozNym giai đoạn 2) khó phát hiện hơn; phụ thuộc dữ liệu gán nhãn từ DGArchive; kết quả dương tính trong thực tế vẫn cần kiểm tra thủ công; nguy cơ DGA đối kháng; danh sách trắng Alexa đã ngừng cung cấp từ 2022.}
+
+\subsubsection{Giới hạn của thông tin từ chuỗi tên miền}
+
+Chuỗi tên miền không biểu diễn đầy đủ mục đích của phần mềm đã sinh ra nó. Một bAGD có thể trông ngẫu nhiên, còn một mAGD ghép từ có thể giống tên miền do con người đặt. Matsnu là ví dụ về DGA ghép các từ tiếng Anh trong Chương~\ref{chap:co-so-ly-thuyet}. Sự tương đồng này tạo khó khăn cho hướng phân loại chỉ dựa trên chuỗi, nhưng không đủ để kết luận FANCI bỏ sót mọi tên miền của một DGA ghép từ cụ thể.
+
+Minh hoạ của nhóm tại Mục~\ref{sec:thuc-nghiem-nhom} cho thấy phân bố entropy của nhóm ghép từ chồng lấn nhiều với đối chứng dễ đọc. Kết quả này giải thích vì sao một đặc trưng riêng lẻ khó tạo ranh giới rõ ràng, chưa phải phép đo hiệu quả của bộ 21 đặc trưng hoặc RF. Từ giới hạn thông tin trên, nhóm nhận xét rằng DGA được điều chỉnh để tạo chuỗi giống tên miền lành tính là một nguy cơ cần nghiên cứu thêm; báo cáo không có thực nghiệm đối kháng để định lượng mức giảm chất lượng của FANCI.
+
+\subsubsection{Phụ thuộc dữ liệu và phạm vi đánh giá}
+
+Học có giám sát đòi hỏi tập huấn luyện phản ánh đủ các dạng tên miền cần phân biệt. Nguồn mAGD của FANCI đến từ các DGA đã được dịch ngược trong DGArchive; chỉ 59 DGA có đủ số mẫu được giữ lại để đánh giá. Nguồn bNXD được làm sạch bằng cách loại mAGD đã biết, nên những miền độc hại chưa có trong kho vẫn có thể còn trong lớp được xem là lành tính. Vì vậy, độ tin cậy của nhãn và tính đại diện của dữ liệu là những điều kiện của kết quả phân loại.
+
+Dữ liệu lịch sử và hai môi trường mạng chưa bao quát mọi thay đổi của phần mềm hoặc cách sinh tên miền. LOGO theo DGA kiểm tra khả năng phát hiện họ bị giữ lại trong chính kho dữ liệu đó, chưa thay thế đánh giá trên dữ liệu thu thập sau thời điểm huấn luyện. Bài báo cũng chưa nêu rõ thời điểm chốt tập mAGD dùng cho đợt kiểm tra thực tế. Các điểm này giới hạn phạm vi khái quát của kết quả, không tự chứng minh có rò rỉ dữ liệu hay chất lượng công bố sai.
+
+\subsubsection{Dương tính giả và nhu cầu xác minh cảnh báo}
+
+Các tập đánh giá cân bằng có tỷ lệ mAGD cao hơn nhiều tình huống triển khai. Như ví dụ giả định ở Mục~\ref{sec:c4-tieu-ket}, nếu mAGD chỉ chiếm $0{,}1\%$ và giữ nguyên TPR, FPR của RF nhiều DGA, độ chuẩn xác của cảnh báo chỉ khoảng $28{,}8\%$. Đây là hệ quả của tỷ lệ lớp theo giả định, không phải số đo trên mạng RWTH. Nó cho thấy ACC cao và FPR nhỏ vẫn chưa mô tả đủ khối lượng cảnh báo mà người vận hành phải kiểm tra.
+
+Trong bản ghi thực, nhãn đầy đủ của mọi tên miền chưa được xác định, nên FPR khoảng $0{,}00064$ chỉ là ước lượng của tác giả. Danh sách trắng giảm số FP nhưng cũng dựa trên giả định về những miền được tin cậy. Nếu một miền trong danh sách bị lạm dụng, việc lọc theo hậu tố có thể bỏ qua cảnh báo bên dưới; nghiên cứu chưa định lượng nguy cơ này. Đồng thời, danh sách Alexa được dùng trong nghiên cứu là cấu hình lịch sử, không phải một tập miền được mặc nhiên giữ nguyên cho lần triển khai khác.
+
+\subsubsection{Hiệu năng và phạm vi phát hiện khi triển khai}
+
+Thông lượng khoảng $392{,}3$ mẫu/giây được đo cho trích xuất đặc trưng và phân loại trên một cấu hình cụ thể. Giá trị này thấp hơn tải đỉnh 900 phản hồi/giây mà tác giả nêu, nếu mỗi phản hồi đều được đưa vào phân loại. Chi phí thu thập, lưu trữ và rà soát cảnh báo còn nằm ngoài phép đo. Bởi vậy, kết quả hỗ trợ tính khả thi về tính toán, chưa bảo đảm một luồng xử lý đáp ứng mọi thời điểm của một mạng lớn; nhu cầu tài nguyên phải được đánh giá cùng tải thực tế.
+
+FANCI cũng tập trung vào NXD, nên không trực tiếp bao quát toàn bộ tên miền độc hại đã phân giải thành công. Khi mở rộng sang tập có tên miền lành tính phân giải thành công, RF đạt ACC $94{,}962\%$ và FPR $7{,}463\%$, thấp hơn về ACC và cao hơn về FPR so với bài toán NXD. Như Mục~\ref{sec:phan-giai-thanh-cong} đã nêu, lớp mAGD vẫn đến từ DGArchive; phép thử chưa xác nhận mọi mẫu độc hại dẫn tới C\&C đang hoạt động. Vì vậy, không thể chuyển nguyên kết luận của bộ phân loại NXD sang bài toán phát hiện toàn bộ hạ tầng mã độc.
+
+\subsection{Đánh giá sự đánh đổi khi chuyển mô hình giữa các mạng}\label{sec:c5-danh-doi-chuyen-mang}
+
+Khả năng chuyển mô hình là cơ sở cho kịch bản thuê ngoài ở Chương~\ref{chap:fanci}, nhưng cần phân biệt chất lượng phân loại tổng thể với mức báo nhầm tại nơi sử dụng. Để đánh giá ảnh hưởng của nguồn huấn luyện, nhóm đối chiếu các kết quả có cùng mạng kiểm tra trong Bảng~\ref{tab:c4-generalization}. Cách đối chiếu này giữ nguyên nguồn bNXD ở mạng đích, thay vì chỉ so sánh hai chiều chuyển mạng có tập kiểm tra khác nhau. Các chênh lệch dưới đây được nhóm tính từ giá trị trung bình công bố, chưa phải kết quả của một phép thử bổ sung.
+
+Tại Siemens, mô hình huấn luyện bằng dữ liệu của chính mạng đạt ACC $99{,}699\%$, còn mô hình huấn luyện tại RWTH đạt $99{,}534\%$. Mức giảm là $0{,}165$ điểm phần trăm. Tuy nhiên, FPR tăng từ $0{,}00418$ lên $0{,}00868$, tương đương khoảng $2{,}08$ lần, trong khi TPR tăng từ $0{,}99815$ lên $0{,}99937$. Như vậy, thay đổi nhỏ của ACC đi cùng mức tăng tương đối đáng kể của FPR. Mô hình chuyển từ RWTH phát hiện được tỷ lệ mAGD cao hơn trong phép thử này, đồng thời tạo thêm báo nhầm trên bNXD Siemens.
+
+Chiều ngược lại cũng cho thấy cần đọc riêng từng độ đo. Trên dữ liệu kiểm tra RWTH, mô hình huấn luyện tại Siemens đạt ACC $99{,}785\%$, cao hơn $0{,}026$ điểm phần trăm so với mô hình huấn luyện tại RWTH. Dù ACC tăng, FPR vẫn tăng từ $0{,}00247$ lên $0{,}00376$, khoảng $1{,}52$ lần; TPR tăng từ $0{,}99764$ lên $0{,}99946$. Vì vậy, ACC cao hơn chưa đủ để kết luận cấu hình đó làm giảm công việc xác minh cảnh báo. Cả hai chiều đều có sự đánh đổi giữa phát hiện mAGD và báo nhầm bNXD so với cấu hình huấn luyện trong chính mạng đích.
+
+Để làm rõ ý nghĩa của FPR, nhóm quy đổi theo giả định có 100.000 bNXD duy nhất và giữ nguyên các tỷ lệ trên. Tại Siemens, số FP kỳ vọng tương ứng là 418 với mô hình huấn luyện cục bộ và 868 với mô hình từ RWTH; tại RWTH, hai giá trị là 247 và 376. Đây là phép tính minh hoạ $N_{bNXD}\times\mathrm{FPR}$, không phải số cảnh báo quan sát được tại hai mạng. Quy đổi chỉ áp dụng cho tên miền duy nhất; số phản hồi lặp lại, bước lọc và cách nhóm cảnh báo còn quyết định khối lượng xử lý thực tế. Do đó, không thể dùng các số này để suy ra số thiết bị bị báo nhầm hoặc thời gian điều tra.
+
+Từ kết quả trên, nhóm đánh giá thuê ngoài là một khả năng có cơ sở thực nghiệm, nhưng mức phù hợp cần xét cùng nguồn bNXD của mạng đích và năng lực rà soát. Trước khi chọn mô hình, nhóm đề xuất kiểm tra riêng TPR, FPR trên dữ liệu có nhãn của nơi sử dụng và ghi nhận tác động của bước lọc. Việc rà soát nên phân biệt lỗi của bộ phân loại với ảnh hưởng của danh sách trắng, tránh xem số cảnh báo giảm là bằng chứng chất lượng mô hình đã tăng. Đây là tiêu chí đánh giá rút ra từ số liệu, chưa phải một quy trình vận hành đã được nhóm thử nghiệm.
 
 \subsection{Phương pháp nào tối ưu và vì sao}\label{sec:toi-uu}
-\canviet{Kết luận theo mục 5 của README: FANCI tối ưu về sự cân bằng giữa độ chính xác, hiệu năng và khả năng triển khai, nhờ đặc trưng chỉ trích xuất từ một tên miền, không cần ngữ cảnh.}
+
+Việc lựa chọn phương pháp phụ thuộc mục tiêu phát hiện và dữ liệu quan sát được. Trong phạm vi phát hiện mAGD từ phản hồi NXD, khi cần quyết định từ một tên miền và hạn chế dữ liệu ngữ cảnh gửi tới bộ phân loại, FANCI là một lựa chọn phù hợp. Căn~cứ là bộ đặc trưng trích xuất trực tiếp từ tên miền, ACC cao trên các tập đã đánh giá, khả năng chuyển giữa hai mạng và thời gian xử lý được công bố. Một RF chung còn cho phép sử dụng cùng mô hình để phát hiện nhiều DGA mà không cần chọn trước họ của mẫu đầu vào.
+
+Nếu mục tiêu là điều tra hạ tầng C\&C hoặc mối liên hệ giữa nhiều truy vấn, dữ liệu thời gian, địa chỉ và luồng mạng vẫn có giá trị. Những hệ thống như Phoenix hay Winning with DNS Failures có mục tiêu phù hợp với loại phân tích đó. NetFlow tiếp cận hành vi trao đổi giữa các thiết bị khi đầu vào không phải chuỗi tên miền. Nhóm vì vậy xem các phương pháp là những lựa chọn theo điều kiện quan sát và nhiệm vụ, thay vì kết luận FANCI tối ưu cho mọi hoạt động phòng thủ botnet.
+
+Đối với chính FANCI, một RF được huấn luyện trên nhiều DGA là lựa chọn có bằng chứng thực nghiệm rõ nhất trong các cấu hình mà tác giả đã thử. Tuy nhiên, lựa chọn khi triển khai còn phải xét FPR, khả năng rà soát cảnh báo và tải của mạng đích. SVM đạt ACC cao hơn ở kịch bản seed chưa biết, nên vẫn có giá trị để đối chiếu nếu nhiệm vụ đặt trọng tâm vào kịch bản này. Số liệu hiện có chưa đủ để khẳng định thay RF bằng SVM hoặc kết hợp hai mô hình sẽ cải thiện một hệ thống vận hành cụ thể.
+
+Từ đó, kết luận của nhóm là FANCI có sự đánh đổi thuận lợi giữa chất lượng phân loại, yêu cầu dữ liệu và chi phí tính toán trong bài toán NXD đã xét. Sự gọn nhẹ ở đầu vào là ưu thế thiết kế rõ ràng; chất lượng trên mạng mới vẫn cần được kiểm tra bằng dữ liệu có nhãn và điều kiện vận hành tương ứng. Cách đánh giá này giữ được đóng góp của FANCI mà không biến kết quả trên các tập lịch sử thành một bảo đảm chung cho mọi môi trường.
 
 \subsection{Tiểu kết chương}
-\canviet{Tóm tắt đánh giá, dẫn sang Chương~\ref{chap:chuyen-doi-so}.}
+
+So sánh cho thấy RF có ACC cao hơn SVM trong đa số kịch bản được công bố, với ngoại lệ seed chưa biết. Việc tác giả chọn một RF chung dựa trên cả kết quả phân loại nhiều DGA và thử nghiệm các tổ hợp bộ phân loại. So với những hệ thống liên quan, FANCI nổi bật ở khả năng phân loại độc lập một NXD, đầu vào gọn và kiến trúc tách chức năng phân loại khỏi việc truy tìm thiết bị.
+
+Các ưu điểm này đi cùng giới hạn về thông tin của chuỗi tên miền, dữ liệu huấn luyện, dương tính giả và tải xử lý. FANCI phù hợp như một thành phần phát hiện và hỗ trợ điều tra, trong phạm vi đã được đánh giá; kết quả cảnh báo vẫn cần xác minh. Chương~\ref{chap:chuyen-doi-so} tiếp tục xem xét ý nghĩa của hướng tiếp cận này đối với an toàn hạ tầng doanh nghiệp số và các thách thức khi đưa vào vận hành.
